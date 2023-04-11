@@ -10,7 +10,7 @@ While supporting [documentation](https://ist.mit.edu/oidc) exists to do user aut
 
 ## What is included? (CURRENTLY IN DEVELOPMENT)
 
-- Basic template for a **secure web service** containing front-end (React.JS) and back-end (Node.JS)
+- Basic template for a **secure web service** containing front-end (React.JS) and API back-end (Express.js)
 - Features for **integration with Touchstone authentication** via MIT OpenID Connect (OIDC) service
   - Includes code for securely requesting, parsing, and validating OAuth tokens from MIT OIDC
   - Provides logic for how to use those tokens to request information about users
