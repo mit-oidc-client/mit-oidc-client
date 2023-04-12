@@ -11,6 +11,10 @@
 
 1. Setup React project with Typescript: <https://create-react-app.dev/docs/adding-typescript/>
 
+## Certificates
+
+1. Self-signed certs (DEV PURPOSES ONLY): <https://www.makeuseof.com/create-react-app-ssl-https/>
+
 
 ## Hosting (TODO)
 
