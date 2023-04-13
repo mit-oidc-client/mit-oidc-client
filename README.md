@@ -2,6 +2,8 @@
 
 Unofficial client template for MIT OpenID Connect (OIDC) service
 
+Live example (UPCOMING) can be found at: <https://wwww.unofficial-oidc-client.xvm.mit.edu>
+
 ## Goal
 
 We want to provide an easy-to-use template for MIT students looking to develop secure web services that supports MIT Touchstone authentication. 
@@ -25,3 +27,7 @@ To ensure the security of our system, we made the following design choices:
   - **Note:** Self-signed certificates should be used for development work __only__. We recommend using Let's Encrypt or other reputable certificate authority for SSL encryption.
 - CORS (Cross-Origin Resource Sharing) is enabled for MIT OpenID Connect server only
   - Need further research
+
+# Questions/ Feature Requests?
+
+Contact us at unofficial-oidc-client@mit.edu
