@@ -19,6 +19,7 @@
 4. Setting up certbot: <https://certbot.eff.org/instructions?ws=nginx&os=ubuntubionic>
 5. Configuring nginx with certbot: <https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04>
 
+sudo certbot --nginx -d unofficial-oidc-client.xvm.mit.edu -d www.unofficial-oidc-client.xvm.mit.edu
 ## MIT OpenID Connect (OIDC)
 
 1. Self-registration with MIT OpenID Connect Pilot: https://oidc.mit.edu/
@@ -30,4 +31,4 @@
 3. Install Node v16.19.0: <https://tecadmin.net/how-to-install-nvm-on-ubuntu-18-04/>
 4. Install pip: <https://stackoverflow.com/questions/6587507/how-to-install-pip-with-python-3>
 5. Serve React app using Nginx on VM: <https://betterprogramming.pub/deploy-react-node-js-application-in-a-virtual-machine-5b910d6f3aac>
-6. 
+6. Allow Nginx user to execute folder in a non-default location: <https://cwiki.apache.org/confluence/display/httpd/13permissiondenied>
