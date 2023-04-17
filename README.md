@@ -2,7 +2,7 @@
 
 Unofficial client template for MIT OpenID Connect (OIDC) service
 
-Live example (UPCOMING) can be found at: <https://wwww.unofficial-oidc-client.xvm.mit.edu>
+Live example (UPCOMING) can be found at: <https://unofficial-oidc-client.xvm.mit.edu>
 
 ## Goal
 
