@@ -16,6 +16,8 @@ While supporting [documentation](https://ist.mit.edu/oidc) exists to do user aut
 - Features for **integration with Touchstone authentication** via MIT OpenID Connect (OIDC) service
   - Includes code for securely requesting, parsing, and validating OAuth tokens from MIT OIDC
   - Provides logic for how to use those tokens to request information about users
+- Extensions (TODO)
+  - OpenPubKey
 - **Support developer documentation** for how to use our template and how Touchstone + OpenID Connect works
 
 ## Security

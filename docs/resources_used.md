@@ -1,5 +1,12 @@
 ## Setting up the project
 
+## OIDC
+
+1. Main webpage - MIT OpenID Connect Pilot: <https://oidc.mit.edu/>
+2. IS&T Guide for Client Implementation: <https://kb.mit.edu/confluence/display/istcontrib/Applications+with+MIT%27s+OpenID+Connect+Server>
+3. Additional IS&T Guide: <https://kb.mit.edu/confluence/display/istcontrib/Logging+in+Users+to+your+application+using+OpenID+Connect>
+4. OpenID Implementer's Guide: <https://openid.net/specs/openid-connect-basic-1_0.html>
+
 ### Backend
 
 1. Typescript + Node project: <https://khalilstemmler.com/blogs/typescript/node-starter-project/>
@@ -19,7 +26,6 @@
 4. Setting up certbot: <https://certbot.eff.org/instructions?ws=nginx&os=ubuntubionic>
 5. Configuring nginx with certbot: <https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04>
 
-sudo certbot --nginx -d unofficial-oidc-client.xvm.mit.edu -d www.unofficial-oidc-client.xvm.mit.edu
 ## MIT OpenID Connect (OIDC)
 
 1. Self-registration with MIT OpenID Connect Pilot: https://oidc.mit.edu/
