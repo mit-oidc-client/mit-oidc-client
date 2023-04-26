@@ -45,3 +45,8 @@
 4. Install pip: <https://stackoverflow.com/questions/6587507/how-to-install-pip-with-python-3>
 5. Serve React app using Nginx on VM: <https://betterprogramming.pub/deploy-react-node-js-application-in-a-virtual-machine-5b910d6f3aac>
 6. Allow Nginx user to execute folder in a non-default location: <https://cwiki.apache.org/confluence/display/httpd/13permissiondenied>
+7. Setting up OpenSSH server
+   1. <https://ubuntu.com/server/docs/service-openssh>
+   2. <https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server>
+   3. <https://www.cyberciti.biz/faq/ubuntu-18-04-setup-ssh-public-key-authentication/>
+   4. <https://www.ionos.com/help/server-cloud-infrastructure/server-administration/creating-a-sudo-enabled-user/>
