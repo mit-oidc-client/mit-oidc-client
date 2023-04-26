@@ -6,6 +6,13 @@
 2. IS&T Guide for Client Implementation: <https://kb.mit.edu/confluence/display/istcontrib/Applications+with+MIT%27s+OpenID+Connect+Server>
 3. Additional IS&T Guide: <https://kb.mit.edu/confluence/display/istcontrib/Logging+in+Users+to+your+application+using+OpenID+Connect>
 4. OpenID Implementer's Guide: <https://openid.net/specs/openid-connect-basic-1_0.html>
+5. Guide for implementing OIDC auth with React: <https://medium.com/@franciscopa91/
+6. how-to-implement-oidc-authentication-with-react-context-api-and-react-router-205e13f2d49>
+
+## Pseudorandom Generators
+
+1. (Backend only) Use crypto.randomBytes: <https://stackoverflow.com/questions/58325771/how-to-generate-random-hex-string-in-javascript>
+2. Crytographically strong random values in browser: <https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues>
 
 ### Backend
 

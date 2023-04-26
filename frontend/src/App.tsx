@@ -8,7 +8,7 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import { oidcAuthProvider } from "./auth";
+import { oidcAuthProvider, redirectToLogin } from "./auth";
 
 export default function App() {
   return (
@@ -23,6 +23,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<PublicPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/oidc-response" element={<LoginPage />} />
           <Route
             path="/protected"
             element={
@@ -41,7 +42,6 @@ function Layout() {
   return (
     <div>
       <AuthStatus />
-
       <ul>
         <li>
           <Link to="/">Public Page</Link>
@@ -50,7 +50,6 @@ function Layout() {
           <Link to="/protected">Protected Page</Link>
         </li>
       </ul>
-
       <Outlet />
       <Credit />
     </div>
@@ -137,19 +136,16 @@ function LoginPage() {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    let formData = new FormData(event.currentTarget);
-    let username = formData.get("username") as string;
-
-    auth.signin(username, () => {
-      // Send them back to the page they tried to visit when they were
-      // redirected to the login page. Use { replace: true } so we don't create
-      // another entry in the history stack for the login page.  This means that
-      // when they get to the protected page and click the back button, they
-      // won't end up back on the login page, which is also really nice for the
-      // user experience.
-      navigate(from, { replace: true });
-    });
+    redirectToLogin();
+    // auth.signin(username, () => {
+    //   // Send them back to the page they tried to visit when they were
+    //   // redirected to the login page. Use { replace: true } so we don't create
+    //   // another entry in the history stack for the login page.  This means that
+    //   // when they get to the protected page and click the back button, they
+    //   // won't end up back on the login page, which is also really nice for the
+    //   // user experience.
+    //   navigate(from, { replace: true });
+    // });
   }
 
   return (
