@@ -1,6 +1,7 @@
 import { AUTH_CONFIG } from "./authConfig";
 import { generateRandomBytes, toHexString} from "./authHelper";
 import Cookies from 'universal-cookie';
+import { useSearchParams } from 'react-router-dom';
 
 async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoint with necessary query parameters
 
@@ -26,7 +27,7 @@ async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoi
 
   const destinationURL = AUTH_CONFIG.auth_endpoint + "?" + params.toString();
   console.log(destinationURL);
-  //window.location.replace(destinationURL);
+  window.location.replace(destinationURL);
 }
 
 const oidcAuthProvider = {
@@ -41,6 +42,17 @@ const oidcAuthProvider = {
   },
 };
 
-export { oidcAuthProvider, redirectToLogin};
+function OidcResponseHandler() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const code = searchParams.get("code");
+  const state = searchParams.get("state");
+  return (
+    <div>
+      <h3> Login Successful {code} {state}</h3>
+    </div>
+  );
+}
+
+export { oidcAuthProvider, redirectToLogin, OidcResponseHandler};
 
 

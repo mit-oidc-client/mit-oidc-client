@@ -26,7 +26,7 @@ export const AUTH_CONFIG: AuthConfig = {
     silent_redirect_uri: "https://unofficial-oidc-client.xvm.mit.edu/silent-renew", 
     post_logout_redirect_uri: "https://unofficial-oidc-client.xvm.mit.edu/", 
     grantType: "password",
-    scope: "openid offline_access", 
+    scope: "openid email", 
     response_type: "code", //mandated by MIT OIDC client
     state_length: 21, //OIDC docs has no requirement on length (though can't be infinite), as long as it's long enough to be unguessable
     nonce_length: 32

@@ -8,7 +8,7 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import { oidcAuthProvider, redirectToLogin } from "./auth";
+import { oidcAuthProvider, OidcResponseHandler, redirectToLogin } from "./auth";
 
 export default function App() {
   return (
@@ -20,19 +20,19 @@ export default function App() {
         page, you must first login.
       </p>
       <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<PublicPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/oidc-response" element={<LoginPage />} />
-          <Route
-            path="/protected"
-            element={
-              <RequireAuth>
-                <ProtectedPage />
-              </RequireAuth>
-            }
-          />
-        </Route>
+      <Route element={<Layout />}>
+        <Route path="/" element={<PublicPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/oidc-response" element={<OidcResponseHandler />} />
+        <Route
+          path="/protected"
+          element={
+            <RequireAuth>
+              <ProtectedPage />
+            </RequireAuth>
+          }
+        />
+      </Route>
       </Routes>
     </AuthProvider>
   );
@@ -128,11 +128,10 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 }
 
 function LoginPage() {
-  let navigate = useNavigate();
-  let location = useLocation();
-  let auth = useAuth();
-
-  let from = location.state?.from?.pathname || "/";
+  // let navigate = useNavigate();
+  // let location = useLocation();
+  // let auth = useAuth();
+  // let from = location.state?.from?.pathname || "/";
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
