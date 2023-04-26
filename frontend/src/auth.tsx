@@ -46,6 +46,9 @@ function OidcResponseHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
   const code = searchParams.get("code");
   const state = searchParams.get("state");
+
+  
+
   return (
     <div>
       <h3> Login Successful {code} {state}</h3>

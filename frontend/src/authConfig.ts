@@ -15,19 +15,22 @@ interface AuthConfig {
     nonce_length: number; //The byte length of `state` variable to be generated as part of login flow
 } 
 
+const OIDC_AUTHORITY_URI = "https://oidc.mit.edu";
+const DOMAIN_URI = "https://unofficial-oidc-client.xvm.mit.edu"
+
 export const AUTH_CONFIG: AuthConfig = {
-    authority: "https://oidc.mit.edu", 
-    auth_endpoint: "https://oidc.mit.edu/authorize",
+    authority: OIDC_AUTHORITY_URI, 
+    auth_endpoint: OIDC_AUTHORITY_URI + "/authorize",
     client_id: "2cfc993e-45d8-45e3-aaa6-78ef8717cb96", 
-    redirect_uri: "https://unofficial-oidc-client.xvm.mit.edu/oidc-response", 
-    login: "https://unofficial-oidc-client.xvm.mit.edu/login",
+    redirect_uri: DOMAIN_URI + "/oidc-response", 
+    login: DOMAIN_URI + "/login",
     automaticSilentRenew: true, 
     loadUserInfo: true, 
-    silent_redirect_uri: "https://unofficial-oidc-client.xvm.mit.edu/silent-renew", 
-    post_logout_redirect_uri: "https://unofficial-oidc-client.xvm.mit.edu/", 
-    grantType: "password",
-    scope: "openid email", 
+    silent_redirect_uri: DOMAIN_URI + "/silent-renew", 
+    post_logout_redirect_uri: DOMAIN_URI, 
+    grantType: "authorization_code",
+    scope: "openid email", //depends on your application needs
     response_type: "code", //mandated by MIT OIDC client
-    state_length: 21, //OIDC docs has no requirement on length (though can't be infinite), as long as it's long enough to be unguessable
+    state_length: 32, //OIDC docs has no requirement on length (though can't be infinite), as long as it's long enough to be unguessable
     nonce_length: 32
 };

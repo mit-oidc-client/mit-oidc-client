@@ -1,5 +1,7 @@
 /**
  * Crytographically secure random bytes generator
+ * 
+ * See: https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
  */
 function generateRandomBytes(num_bytes:number){
     const random_num = new Uint8Array(num_bytes);
