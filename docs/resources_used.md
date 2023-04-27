@@ -1,6 +1,6 @@
 ## Setting up the project
 
-## OIDC
+## MIT OpenID Connect(OIDC)
 
 1. Main webpage - MIT OpenID Connect Pilot: <https://oidc.mit.edu/>
 2. IS&T Guide for Client Implementation: <https://kb.mit.edu/confluence/display/istcontrib/Applications+with+MIT%27s+OpenID+Connect+Server>
@@ -8,6 +8,7 @@
 4. OpenID Implementer's Guide: <https://openid.net/specs/openid-connect-basic-1_0.html>
 5. Guide for implementing OIDC auth with React: <https://medium.com/@franciscopa91/
 6. how-to-implement-oidc-authentication-with-react-context-api-and-react-router-205e13f2d49>
+7. Self-registration with MIT OpenID Connect Pilot: https://oidc.mit.edu/
 
 ## Pseudorandom Generators
 
@@ -33,10 +34,6 @@
 4. Setting up certbot: <https://certbot.eff.org/instructions?ws=nginx&os=ubuntubionic>
 5. Configuring nginx with certbot: <https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04>
 
-## MIT OpenID Connect (OIDC)
-
-1. Self-registration with MIT OpenID Connect Pilot: https://oidc.mit.edu/
-
 ## Hosting
 
 1. Change Scripts VM version to Fedora 30: <https://scripts.mit.edu/upgrade/>
@@ -50,3 +47,4 @@
    2. <https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server>
    3. <https://www.cyberciti.biz/faq/ubuntu-18-04-setup-ssh-public-key-authentication/>
    4. <https://www.ionos.com/help/server-cloud-infrastructure/server-administration/creating-a-sudo-enabled-user/>
+8. Serving Express.js server using pm2 (don't serve against Node directly!): <https://www.freecodecamp.org/news/you-should-never-ever-run-directly-against-node-js-in-production-maybe-7fdfaed51ec6/>

@@ -19,7 +19,7 @@ For development work ONLY, you can generate self-signed certificates. See the fo
 On our live example, we used Let's Encrypt Certbot tool configured for Nginx for the acquiring and the auto-renewal of TLS certificates.
 ## OIDC Registration
 
-
+TODO: Fill in
 
 ## Hosting
 
