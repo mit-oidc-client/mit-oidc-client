@@ -2,15 +2,14 @@ interface AuthConfig {
 
     //OIDC provider-specific configs
     auth_endpoint: string, //OIDC provider's authentication endpoint
-    token_endpoint: string, //OIDC provider's token endpoint
     grantType: string;
     scope: string; //The scope being requested from the OIDC provider
     response_type: string; 
 
     //Client-specific configs 
     client_id: string, //The client application's identifier (as registered with the OIDC provider)
-    redirect_uri: string, ///Endpoint of client to receive authorization response 
-    login: string, //Endpoint of client application to handle login
+    redirect_uri: string, ///Endpoint to receive authorization response 
+    login_uri: string, //Endpoint of BACKEND server to receive code following successful login
 
     automaticSilentRenew: boolean; //Flag to indicate if there should be an automatic attempt to renew the access token prior to its expiration.
     loadUserInfo: boolean; //Flag to control if additional identity data is loaded from the user info endpoint in order to populate the user's profile.
@@ -27,7 +26,6 @@ export const AUTH_CONFIG: AuthConfig = {
 
     //OIDC provider-specific configs
     auth_endpoint: OIDC_AUTHORITY_URI + "/authorize",
-    token_endpoint: OIDC_AUTHORITY_URI + "/token",
     grantType: "authorization_code", //manded by MIT OIDC client
     scope: "openid email", //depends on your application needs
     response_type: "code", //mandated by MIT OIDC client
@@ -35,8 +33,8 @@ export const AUTH_CONFIG: AuthConfig = {
     //Client-specific configs 
     client_id: "2cfc993e-45d8-45e3-aaa6-78ef8717cb96", //Safe to save client-side
     redirect_uri: DOMAIN_URI + "/oidc-response", 
-    login: DOMAIN_URI + "/login",
-
+    login_uri: DOMAIN_URI + "/api/login",
+    
     automaticSilentRenew: true, 
     loadUserInfo: true, 
     silent_redirect_uri: DOMAIN_URI + "/silent-renew", 

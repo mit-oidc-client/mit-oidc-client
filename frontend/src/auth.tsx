@@ -58,7 +58,15 @@ function OidcResponseHandler() {
     authResult = <h3> Login Failed. Please try again.</h3>
   }
 
-  
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code })
+  };
+  fetch(AUTH_CONFIG.login_uri, requestOptions)
+  //.then(response => response.json())
+  //.then(data => this.setState({ postId: data.id }));
+
   return (
     <div>
       {authResult}
