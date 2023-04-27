@@ -10,6 +10,8 @@ const fs = require("fs");
 
 const app: Express = express();
 const port = process.env.PORT;
+const serverHost = process.env.SERVER_HOST; //should be "localhost" (if using reverse proxy) 
+                                            //or "0.0.0.0" (listen on all interfaces)
 
 app.use(express.json()); //Use middleware to parse JSON body 
                          //Assumes POST done with Content-Type: application/json
@@ -23,8 +25,8 @@ const server = https
     },
     app
     )
-    .listen(port, '0.0.0.0', () => {
-        console.log(`⚡️[server]: Server is running at https://0.0.0.0:${port}`);
+    .listen(port, serverHost, () => {  
+        console.log(`⚡️[server]: Server is running at https://${serverHost}:${port}`);
     });
 
 // define a route handler for the default home page
