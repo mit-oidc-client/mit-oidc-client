@@ -1,12 +1,15 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { AUTH_CONFIG } from './authConfig';
+import { eqSet } from "./authHelper";
 
 // Load in environment variables
 dotenv.config();
 
 const https = require("https");
 const fs = require("fs");
+const  FormData = require('form-data');
+const axios = require('axios');
 
 const app: Express = express();
 const port = process.env.PORT;
@@ -34,7 +37,43 @@ app.get('/api/', (req: Request, res: Response) => {
     res.send('Backend Server');
 });
 
-app.post('/api/login', (req: Request, res: Response) => {
-    res.send(req.body);
+/**
+ * Handles login of user following successful authentication to OIDC server
+ * 
+ * Need JSON post body with parameters:
+ * - code: string
+ */
+app.post('/api/login', async (req: Request, res: Response) => {
+    console.log(req.body);
+    const code = req.body["code"];
+
+    const oidcResponse = await axios.post(AUTH_CONFIG.token_endpoint, new URLSearchParams({
+        grant_type: AUTH_CONFIG.grantType,
+        code: code,
+        redirect_uri: AUTH_CONFIG.redirect_uri
+    }),
+    {
+        auth: {
+            username: AUTH_CONFIG.client_id,
+            password: AUTH_CONFIG.client_secret
+        }
+    });
+    console.log(oidcResponse.data);
+    const oidcJSON: object = oidcResponse.data;
+
+    //Verify that user provided us with necessary scope
+    const hasToken = oidcJSON.hasOwnProperty("id_token");
+    const hasScope = oidcJSON.hasOwnProperty("scope");
+
+    const expectedScope = new Set(AUTH_CONFIG.scope.split(" "));
+    const givenScope = ((hasScope)? new Set<String>(oidcJSON["scope"].split(" ")): new Set<String>());
+    
+    const hasFullScope = eqSet(expectedScope, givenScope);
+    
+    if(!hasFullScope) {
+        console.log("We don't have the necessary scopes!");
+        //TODO: Do something
+    }
+
 });
 

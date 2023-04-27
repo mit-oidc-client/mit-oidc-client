@@ -6,6 +6,7 @@ interface AuthConfig {
     scope: string; //The scope being requested from the OIDC provider
 
     //Client-specific configs 
+    redirect_uri: string, ///Endpoint to receive authorization response 
     client_id: string, //The client application's identifier (as registered with the OIDC provider)
     client_secret: string, //The client application's identifier (as registered with the OIDC provider) - DO NOT EXPOSE PUBLICLY
 } 
@@ -21,6 +22,7 @@ export const AUTH_CONFIG: AuthConfig = {
     scope: "openid email", //depends on your application needs
 
     //Client-specific configs 
+    redirect_uri: DOMAIN_URI + "/oidc-response", 
     client_id: "2cfc993e-45d8-45e3-aaa6-78ef8717cb96", //Safe to save client-side
-    client_secret: "FILL_IN_YOURS_HERE",
+    client_secret: "FILL_IN_YOURS_HERE", 
 };
