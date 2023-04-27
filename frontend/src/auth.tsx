@@ -47,11 +47,21 @@ function OidcResponseHandler() {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
 
-  
+  let authResult;
+  const cookies = new Cookies();
 
+  //Validate the state parameter we get back is 
+  //what we generated on client side
+  if(state === cookies.get("oidc-request-state")) {
+    authResult = <h3> Login Successful!</h3>
+  } else {
+    authResult = <h3> Login Failed. Please try again.</h3>
+  }
+
+  
   return (
     <div>
-      <h3> Login Successful {code} {state}</h3>
+      {authResult}
     </div>
   );
 }
