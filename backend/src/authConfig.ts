@@ -1,3 +1,8 @@
+const fs = require('fs');
+
+const secretsData = fs.readFileSync('../cert/secrets.json');
+const secrets = JSON.parse(secretsData); //Contain OIDC registration info
+
 interface AuthConfig {
 
     //OIDC provider-specific configs
@@ -24,5 +29,5 @@ export const AUTH_CONFIG: AuthConfig = {
     //Client-specific configs 
     redirect_uri: DOMAIN_URI + "/oidc-response", 
     client_id: "2cfc993e-45d8-45e3-aaa6-78ef8717cb96", //Safe to save client-side
-    client_secret: "FILL_IN_YOURS_HERE", 
+    client_secret: secrets["client_secret"], 
 };
