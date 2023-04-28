@@ -1,7 +1,7 @@
 import { AUTH_CONFIG } from "./authConfig";
 import { generateRandomBytes, toHexString} from "./authHelper";
 import Cookies from 'universal-cookie';
-import { useSearchParams} from 'react-router-dom';
+import { useSearchParams, useNavigate} from 'react-router-dom';
 import { useState, useEffect } from 'react';
 /**
  * Expected response format for backend server to return to user after querying /login endpoint
@@ -53,6 +53,7 @@ const oidcAuthProvider = {
 
 function OidcResponseHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const state = searchParams.get("state");
   const code = searchParams.get("code");
   const cookies = new Cookies();

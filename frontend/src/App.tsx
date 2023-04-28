@@ -128,21 +128,10 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 }
 
 function LoginPage() {
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    redirectToLogin();
-  }
-
   return (
     <div>
       <p>You must log in to view the Protected page</p>
-
-      <form onSubmit={handleSubmit}>
-        <label>
-          Username: <input name="username" type="text" />
-        </label>{" "}
-        <button type="submit">Login</button>
-      </form>
+      <button onClick={redirectToLogin}>Login</button>
     </div>
   );
 }
