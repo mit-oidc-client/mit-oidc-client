@@ -37,3 +37,4 @@ If you get an error about connection refused or IP address in use, do `ps` to li
 - Switch backend server to use Let's Encrypt certs instead of self-signed certs (these expire in 2 years)
 - Use pm2 to serve Express server for production mode
 - Reference documentation from <https://github.com/robertvunabandi/guide-on-mitopenid> project
+- Turn on prevent implicit any Typescript check in backend + fix issues (if time permits)
