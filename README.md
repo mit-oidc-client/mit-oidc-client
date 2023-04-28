@@ -27,8 +27,13 @@ To ensure the security of our system, we made the following design choices:
 - HTTPS is required in development for both the front-end and back-end
   - HTTPS/SSL encryption ensures all communication between the user and the web service is protected. This is a hard requirement for safe-handling of OAuth ID and access tokens
   - **Note:** Self-signed certificates should be used for development work __only__. We recommend using Let's Encrypt or other reputable certificate authority when deploying to production. If you're using platforms like Heroku or Render.com for hosting, they often will have their own SSL certificates management services. See [this](https://devcenter.heroku.com/articles/automated-certificate-management) and [this](https://render.com/docs/tls).
-- CORS (Cross-Origin Resource Sharing) is enabled for MIT OpenID Connect server only
-  - Need further research
+- Dependency on secure cryptographic libraries
+  - When generating randomness or relying on cryptographic primitives like hash functions, we use secure libraries like built in browser's `Crypto.getRandomValues()` and `Crypto.subtle.digest()` function set to SHA-256 hash.
+- Utilization of nonce in authorization request
+  - TODO
+- Securing cookies using Secure and HTTPonly flags
+  - TODO
+- Safe type checking using Typescript
 
 # Questions/ Feature Requests?
 
