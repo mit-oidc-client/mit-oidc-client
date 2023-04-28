@@ -64,7 +64,7 @@ function OidcResponseHandler() {
     body: JSON.stringify({ code: code })
   };
   fetch(AUTH_CONFIG.login_uri, requestOptions)
-  //.then(response => response.json())
+  .then(response => response.json())
   //.then(data => this.setState({ postId: data.id }));
 
   return (

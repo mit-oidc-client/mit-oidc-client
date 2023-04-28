@@ -18,7 +18,7 @@ To be able to directly SSH into the production server, first let a current maint
 
 Because of how the OpenID Connect system is set up, generally any testing you do that requires interactions from the OIDC server (that can't be simulated yourself) will require you to copy your backend and/or frontend **build** files to the remote server, and then see the results there.
 
-To build, navigate to either `frontend/` or `backend/` and run `npm run build`. 
+To build, navigate to either `frontend/` or `backend/` and run `npm run build`.
 
 Quick command to copy the build from your local filesystem to the server:
 

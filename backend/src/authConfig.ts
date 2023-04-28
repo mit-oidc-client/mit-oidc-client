@@ -7,7 +7,9 @@ interface AuthConfig {
 
     //OIDC provider-specific configs
     token_endpoint: string, //OIDC provider's token endpoint
+    public_key: string, //OIDC provider's URI containing public key in JWK format
     grantType: string;
+    tokenType: string; 
     scope: string; //The scope being requested from the OIDC provider
 
     //Client-specific configs 
@@ -23,7 +25,9 @@ export const AUTH_CONFIG: AuthConfig = {
 
     //OIDC provider-specific configs
     token_endpoint: OIDC_AUTHORITY_URI + "/token",
-    grantType: "authorization_code", //manded by MIT OIDC client
+    public_key: OIDC_AUTHORITY_URI + "/jwk",
+    grantType: "authorization_code", //mandated by MIT OIDC client
+    tokenType: "Bearer", //mandated by MIT OIDC client
     scope: "openid email", //depends on your application needs
 
     //Client-specific configs 
