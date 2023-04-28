@@ -1,7 +1,16 @@
 import { AUTH_CONFIG } from "./authConfig";
 import { generateRandomBytes, toHexString} from "./authHelper";
 import Cookies from 'universal-cookie';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams} from 'react-router-dom';
+import { useState, useEffect } from 'react';
+/**
+ * Expected response format for backend server to return to user after querying /login endpoint
+ */
+interface loginResponse {
+  success: boolean,   //Whether or not the login succeeded
+  error_msg: string,  //If not success, provide error message. Else, empty string.
+  id_token: string,   //If success, provide validated id_token. Else, empty string.
+}
 
 async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoint with necessary query parameters
 
@@ -44,32 +53,47 @@ const oidcAuthProvider = {
 
 function OidcResponseHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const code = searchParams.get("code");
   const state = searchParams.get("state");
-
-  let authResult;
+  const code = searchParams.get("code");
   const cookies = new Cookies();
+
+  let initialMsg: string;
 
   //Validate the state parameter we get back is 
   //what we generated on client side
   if(state === cookies.get("oidc-request-state")) {
-    authResult = <h3> Login Successful!</h3>
+    initialMsg = "Waiting to hear back from server..."; //User logged in to OIDC page, but still needs to be logged
+                                                        //into our backend system.
   } else {
-    authResult = <h3> Login Failed. Please try again.</h3>
+    initialMsg = "Login Failed. Please try again.";
   }
 
-  const requestOptions = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code: code })
-  };
-  fetch(AUTH_CONFIG.login_uri, requestOptions)
-  .then(response => response.json())
-  //.then(data => this.setState({ postId: data.id }));
+  const [loginMsg, setLoginMsg] = useState(initialMsg);
+
+  useEffect(() => { //Should be called only once (e.g. upon successful login to OIDC endpoint)
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
+    };
+    fetch(AUTH_CONFIG.login_uri, requestOptions)
+    .then(response => response.json())
+    .then((data:loginResponse) => { //Get back response from backend server
+      console.log(data);
+      if(data.success){ 
+        //Login was successful! Expect id_token
+        setLoginMsg("Login successful!");
+        localStorage.setItem("id_token", data.id_token);
+      } else {
+        //Login was unsuccessful. Let user know about error message.
+        setLoginMsg(`Login failed! ${data.error_msg}`);
+      }
+    });
+  },[]); 
 
   return (
     <div>
-      {authResult}
+      {loginMsg}
     </div>
   );
 }
