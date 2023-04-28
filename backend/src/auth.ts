@@ -1,5 +1,5 @@
 import {AxiosResponse} from 'axios';
-
+import { JWK } from "jwk-to-pem";
 /**
  * Expected response format after querying /token endpoint of OIDC server
 */
@@ -12,8 +12,17 @@ interface oidcToken {
     scope?: string
 }
 
-interface jwkResponse {
-    keys: Array<object>
+/**
+ * Expected response format for server to return to user after querying /login endpoint
+ */
+interface loginResponse {
+    success: boolean,   //Whether or not the login succeeded
+    error_msg: string,  //If not success, provide error message. Else, empty string.
+    id_token: string,   //If success, provide validated id_token. Else, empty string.
 }
 
-export { oidcToken, jwkResponse } 
+interface jwkResponse {
+    keys: JWK
+}
+
+export { oidcToken, jwkResponse, loginResponse } 
