@@ -90,12 +90,22 @@ app.post('/api/login', async (req: Request, res: Response) => {
         //Fetch the OIDC server public key
         const oidcPublicKeys = await axios.get<jwkResponse>(AUTH_CONFIG.public_key);
         console.log(oidcPublicKeys);
-        console.log(typeof oidcPublicKeys);
-        
-        //const pemPublicKey = jwkToPem();
+        if("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
+            const firstKey = oidcPublicKeys.keys[0]; 
+            const pemPublicKey = jwkToPem(firstKey);
+            console.log(pemPublicKey);
 
-        //const decoded = jwt.verify(oidcJSON.id_token,); //Verify the token, and if valid, return the decoded payload
-        //console.log(decoded);
+            try {
+                //Verify the token, and if valid, return the decoded payload
+                const decoded = jwt.verify(oidcJSON.id_token,pemPublicKey); 
+                console.log(decoded);
+            } catch(error) {
+                //Handle issue with token not having valid signature
+                console.log(error);
+            }
+        }
+
+
 
         //Proceed to validate all parts of the ID token claims
     }
