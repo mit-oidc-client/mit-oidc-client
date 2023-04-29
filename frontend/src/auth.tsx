@@ -1,16 +1,21 @@
 import { AUTH_CONFIG } from "./authConfig";
 import { generateRandomBytes, toHexString} from "./authHelper";
 import Cookies from 'universal-cookie';
-import { useSearchParams, useNavigate} from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useAuth } from "./authProvider";
 /**
- * Expected response format for backend server to return to user after querying /login endpoint
+ * Expected response for server to return to user's browser after querying /login endpoint
  */
 interface loginResponse {
   success: boolean,   //Whether or not the login succeeded
-  error_msg: string,  //If not success, provide error message. Else, empty string.
-  id_token: string,   //If success, provide validated id_token. Else, empty string.
+  error_msg: string,  //If failed, provide error message. Else, empty string.
+
+  //If success, these values should be populated. Else, empty string.
+  id_token: string, 
+  email: string,
 }
+
 
 async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoint with necessary query parameters
 
@@ -54,6 +59,9 @@ const oidcAuthProvider = {
 function OidcResponseHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const auth = useAuth();
+
   const state = searchParams.get("state");
   const code = searchParams.get("code");
   const cookies = new Cookies();
@@ -84,13 +92,19 @@ function OidcResponseHandler() {
       if(data.success){ 
         //Login was successful! Expect id_token
         setLoginMsg("Login successful!");
-        localStorage.setItem("id_token", data.id_token);
+        localStorage.setItem(AUTH_CONFIG.id_token_local_storage, data.id_token); //Save id_token to local storage
+
+        const from = location.state?.from?.pathname || "/";
+        auth.signin(data.email, ()=>{
+          //Redirect user back to their original location
+          navigate(from, {replace: true});
+        });
       } else {
         //Login was unsuccessful. Let user know about error message.
         setLoginMsg(`Login failed! ${data.error_msg}`);
       }
     });
-  },[]); 
+  },[code,auth]); 
 
   return (
     <div>

@@ -10,6 +10,8 @@ interface AuthConfig {
     client_id: string, //The client application's identifier (as registered with the OIDC provider)
     redirect_uri: string, ///Endpoint to receive authorization response 
     login_uri: string, //Endpoint of BACKEND server to receive code following successful login
+    id_token_local_storage: string, //Name to be given to variable in Local Storage that contains the user's id_token 
+                                    //(upon successful authentication)
 
     automaticSilentRenew: boolean; //Flag to indicate if there should be an automatic attempt to renew the access token prior to its expiration.
     loadUserInfo: boolean; //Flag to control if additional identity data is loaded from the user info endpoint in order to populate the user's profile.
@@ -34,6 +36,7 @@ export const AUTH_CONFIG: AuthConfig = {
     client_id: "2cfc993e-45d8-45e3-aaa6-78ef8717cb96", //Safe to save client-side
     redirect_uri: DOMAIN_URI + "/oidc-response", 
     login_uri: DOMAIN_URI + "/api/login",
+    id_token_local_storage: "id_token",
     
     automaticSilentRenew: true, 
     loadUserInfo: true, 
