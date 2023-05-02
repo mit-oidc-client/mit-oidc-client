@@ -8,6 +8,10 @@ import {
 import { OidcResponseHandler, redirectToLogin } from "./auth";
 import { AuthProvider, RequireAuth, AuthStatus } from "./authProvider";
 
+/****************************************************************************************/
+import ChatRoom from "./sampleImplementation/Chatroom";
+/****************************************************************************************/
+
 export default function App() {
   return (
     <AuthProvider>
@@ -65,9 +69,12 @@ function LoginPage() {
 }
 
 function PublicPage() {
+
   return <div className="public">
       <h3>Public</h3>
       <p>You are currently viewing publicly-known information</p>
+      {/* To be moved to Protect Page */}
+      <ChatRoom />
   </div>;
 }
 
