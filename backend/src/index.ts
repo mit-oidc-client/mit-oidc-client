@@ -3,6 +3,11 @@ import dotenv from 'dotenv';
 
 import { handleLogin } from './auth';
 
+/****************************************************************************************/
+import { addMessage, getMessages } from './sampleImplementation/ChatroomState';
+import { MessageType } from './sampleImplementation/types';
+/****************************************************************************************/
+
 // Load in environment variables
 dotenv.config();
 
@@ -44,3 +49,21 @@ app.get('/api/', (req: Request, res: Response) => {
  */
 app.post('/api/login', handleLogin);
 
+
+/****************************************************************************************/
+/** Routes for sample implementation: Chatroom */
+
+// route to add a new chat message
+app.post('/api/messages', (req: Request, res: Response) => {
+    console.log('post req')
+    const { id, sender, text, sig}: { id: number, sender: string, text: string, sig: string } = req.body;
+    addMessage(id, sender, text, sig);
+    res.sendStatus(200);
+});
+
+// route to get the chat history
+app.get('/api/messages', (req: Request, res: Response<MessageType[]>) => {
+    const messages: MessageType[] = getMessages();
+    res.json(messages);
+});
+/****************************************************************************************/
