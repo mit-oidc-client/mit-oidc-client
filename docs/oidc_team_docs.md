@@ -34,10 +34,10 @@ If you get an error about connection refused or IP address in use, do `ps` to li
 
 ## Final Deployment Tasks
 
-- Add resources I use to make frontend and backend work 
-- Switch backend server to use Let's Encrypt certs instead of self-signed certs (these expire in 2 years)
-- Use pm2 to serve Express server for production mode
-- Reference documentation from <https://github.com/robertvunabandi/guide-on-mitopenid> project
-- Remove extraneous console.log statements
-- Turn on prevent implicit any Typescript check in backend + fix issues (if time permits)
-- Make sure I do stuff with the nonce token (send from client side to backend) to verify ID token
+-   Add resources I use to make frontend and backend work
+-   Switch backend server to use Let's Encrypt certs instead of self-signed certs (these expire in 2 years)
+-   Use pm2 to serve Express server for production mode
+-   Reference documentation from <https://github.com/robertvunabandi/guide-on-mitopenid> project
+-   Remove extraneous console.log statements
+-   Turn on prevent implicit any Typescript check in backend + fix issues (if time permits)
+-   Make sure I do stuff with the nonce token (send from client side to backend) to verify ID token

@@ -1,17 +1,20 @@
 import React, { useRef, useEffect, useState } from "react";
 import axios, { AxiosResponse } from 'axios';
 import { MessageType } from './types';
+import { useAuth } from "../authProvider";
 
 // type Props = {
 //   messages: MessageType[];
 // };
 
+
+
 const sendMessage = (id: number, sender: string, text: string, sig: string): Promise<AxiosResponse<MessageType>> => {
-  return axios.post<MessageType>('https://localhost:4000/api/messages', { id, sender, text, sig });
+  return axios.post<MessageType>('https://unofficial-oidc-client.xvm.mit.edu/api/messages', { id, sender, text, sig });
 }
 
 const getMessages = (): Promise<AxiosResponse<MessageType[]>> => {
-  return axios.get<MessageType[]>('https://localhost:4000/api/messages');
+  return axios.get<MessageType[]>('https://unofficial-oidc-client.xvm.mit.edu/api/messages');
 }
 
 const signMessage = (text: string): string => {
@@ -23,6 +26,7 @@ const signMessage = (text: string): string => {
 
 const ChatRoom = () => {
   const chatRoomRef = useRef<HTMLDivElement>(null);
+  const auth = useAuth();
     {/* Hard coded messages */}
 
     const [messages, setMessages] = useState<MessageType[]>([]);
@@ -32,7 +36,7 @@ const ChatRoom = () => {
   useEffect(() => {
     chatRoomRef.current?.scrollIntoView({ behavior: "smooth" });
     fetchMessages();
-  }, [messages]);
+  }, []);
 
   const fetchMessages = () => {
     getMessages().then((response) => {
@@ -46,27 +50,14 @@ const ChatRoom = () => {
 
     // BACKEND SERVER MEMORY
     // Hard coded id and sender
-    sendMessage(1, "Me", newMessage, signMessage(newMessage)).then(() => {
+    sendMessage(1, auth.user, newMessage, signMessage(newMessage)).then(() => {
       setNewMessage('');
       fetchMessages();
     });
-
-
-    
-    // LOCAL STATE MEMORY
-    // const message: MessageType = {
-    //   id: 1,
-    //   sender: 'Me',
-    //   text: newMessage,
-    //   sig: signMessage(newMessage),
-    // };
-    // setMessages([...messages, message]);
-    // setNewMessage('');
   };
 
   return (
     <div>
-      {/* <strong>Chatroom</strong> */}
       <div style={{ height: "400px", width: "600px", overflowY: "scroll" }}>
         {messages.map((message) => (
           <div key={message.id}>
