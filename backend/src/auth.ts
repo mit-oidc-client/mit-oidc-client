@@ -27,7 +27,7 @@ async function handleLogin(req: Request, res: Response) {
      * 
      * Note: For our system we're choosing to output the error to the user/browser. However,
      * if you don't want to leak the reason why we failed to authenticate, you can
-     * alternatively write the error_msg to a server-side log instead.
+     * alternatively write the error_msg to output to a server-side log instead (Not implemented).
      */
     function respondWithError(errorMsg:string) {
         userResponse.success = false;
@@ -50,7 +50,7 @@ async function handleLogin(req: Request, res: Response) {
             }
         });
     } catch(error) {
-        respondWithError("Invalid user code was provided");
+        respondWithError("Input Error: Invalid user code was provided");
     }
 
     //TODO: Check error code of response to see that we didn't send it a bad code
@@ -66,13 +66,13 @@ async function handleLogin(req: Request, res: Response) {
     const hasFullScope = eqSet(expectedScope, givenScope);
     
     if(!hasFullScope || !hasToken) {
-        respondWithError("Please make sure you allow the necessary scopes!");
+        respondWithError("User Error: Please make sure you allow the necessary scopes!");
     }
 
     //TODO: Check token_type is correct
     const correctTokenType = (oidcJSON.token_type === AUTH_CONFIG.tokenType);
     if(!correctTokenType) {
-        respondWithError("Token type received from OIDC did not match up with what was expected");
+        respondWithError("OIDC error: Unexpected token type received in ID token");
     }
 
     //TODO: Store refresh_token (first need to ask for offline_access first)
@@ -101,6 +101,8 @@ async function handleLogin(req: Request, res: Response) {
             //e.g., validate all parts of the ID token claims
             const correctIssuer = (decoded.iss === AUTH_CONFIG.tokenIssuer)
             
+            if(decoded.exp < Date.now()) respondWithError("OIDC Error: Given ID token has already expired");
+            if(decoded.iat  > Date.now()) respondWithError("OIDC Error: Given ID token is issued in the future");
 
             //Assured that ID token is valid, try to query user information
             //to retrieve profile info

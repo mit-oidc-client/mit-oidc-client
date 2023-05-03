@@ -1,6 +1,8 @@
 const fs = require('fs');
 
-const secretsData = fs.readFileSync('../cert/secrets.json');
+const secretsData = fs.readFileSync('../cert/secrets.json'); //We choose to read in the client_secret 
+                                                             //from a JSON file stored in /cert folder
+                                                             
 const secrets = JSON.parse(secretsData); //Contain OIDC registration info
 
 interface AuthConfig {
