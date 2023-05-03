@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, response } from 'express';
 import { JWK } from "jwk-to-pem";
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
@@ -73,6 +73,22 @@ async function handleLogin(req: Request, res: Response) {
         email: ""
     }
 
+    /**
+     * Helper function: Given an error message,
+     * output a JSON response to user with that error.
+     * 
+     * Side effect: Will exit prematurely from handleLogin() due to sending respond.
+     * 
+     * Note: For our system we're choosing to output the error to the user/browser. However,
+     * if you don't want to leak the reason why we failed to authenticate, you can
+     * alternatively write the error_msg to a server-side log instead.
+     */
+    function respondWithError(errorMsg:string) {
+        userResponse.success = false;
+        userResponse.error_msg = errorMsg;
+        res.status(200).json(userResponse);
+    }
+
     //Send code to OIDC to get back token
     let oidcResponse;
     try {
@@ -88,10 +104,7 @@ async function handleLogin(req: Request, res: Response) {
             }
         });
     } catch(error) {
-        userResponse.success = false;
-        userResponse.error_msg = "Invalid user code was provided";
-        res.status(200).json(userResponse);
-        return;
+        respondWithError("Invalid user code was provided");
     }
 
     //TODO: Check error code of response to see that we didn't send it a bad code
@@ -107,16 +120,18 @@ async function handleLogin(req: Request, res: Response) {
     const hasFullScope = eqSet(expectedScope, givenScope);
     
     if(!hasFullScope || !hasToken) {
-        userResponse.success = false;
-        userResponse.error_msg = "Please make sure you allow the necessary scopes!";
-        res.status(200).json(userResponse);
+        respondWithError("Please make sure you allow the necessary scopes!");
     }
 
     //TODO: Check token_type is correct
-    //TODO: Store refresh_token (first need to ask for offline_access first)
-    //TODO: Store access_token or do something interesting with it
+    const correctTokenType = (oidcJSON.token_type === AUTH_CONFIG.tokenType);
+    if(!correctTokenType) {
+        respondWithError("Token type received from OIDC did not match up with what was expected");
+    }
 
-    //Validate ID token and send it back to the user 
+    //TODO: Store refresh_token (first need to ask for offline_access first)
+
+    //Proceed to validate ID token and fetch information about the user
     if(oidcJSON.id_token) {
 
         //Fetch the OIDC server public key
@@ -133,17 +148,18 @@ async function handleLogin(req: Request, res: Response) {
                 //console.log("Decoded",decoded);
             } catch(error) {
                 //Handle issue with token not having valid signature
-                userResponse.success = false;
-                userResponse.error_msg = "OIDC error: Invalid signature in OIDC ID token";
-                res.status(200).json(userResponse);
+                respondWithError("OIDC error: Invalid signature in OIDC ID token");
                 return;
             }
             //Proceed to do more checking...
             //e.g., validate all parts of the ID token claims
+            const correctIssuer = (decoded.iss === AUTH_CONFIG.tokenIssuer)
+            
 
             //Assured that ID token is valid, try to query user information
             //to retrieve profile info
             const profileResults = await getUserInfo(oidcJSON.access_token, decoded);
+
             if(profileResults.success){
                 userResponse.success = true;
                 userResponse.id_token = oidcJSON.id_token;
