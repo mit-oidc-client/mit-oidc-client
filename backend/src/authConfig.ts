@@ -9,7 +9,7 @@ interface AuthConfig {
     token_endpoint: string, //OIDC provider's token endpoint
     user_info_endpoint: string, //OIDC provider's user information endpoint
     public_key: string, //OIDC provider's URI containing public key in JWK format
-    grantType: string;
+    grantType: string; 
     tokenType: string; 
     tokenIssuer: string, //Listed issuer in valid ID tokens
 
@@ -32,6 +32,7 @@ export const AUTH_CONFIG: AuthConfig = {
     public_key: OIDC_AUTHORITY_URI + "/jwk",
     grantType: "authorization_code", //mandated by MIT OIDC client
     tokenType: "Bearer", //mandated by MIT OIDC client
+    tokenIssuer: OIDC_AUTHORITY_URI,
 
     //Client-specific configs 
     redirect_uri: DOMAIN_URI + "/oidc-response", 
