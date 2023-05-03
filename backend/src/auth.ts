@@ -51,13 +51,13 @@ interface userInfoResponse {
  * Defines expected format of an OpenID Connect ID token
  */
 interface idToken {
-    iss: string,
-    sub: string,
-    exp: string,
-    iat: string,
-    auth_time: string,
-    aud: Array<string>,
-    nonce: string,
+    iss: string, //Issuer of token
+    sub: string, //Machine-readable identifier of the user at the OIDC server
+    exp: number, //Timestamp of when token expires
+    iat: number, //Timestamp of when token was issue
+    auth_time: number, //Timestamp of when user last authenticated to MIT OIDC server
+    aud: Array<string>, //A list of client_ids ("audience") the token is intended for
+    nonce: string //The nonce value sent during the token request
 }
 
 /**
