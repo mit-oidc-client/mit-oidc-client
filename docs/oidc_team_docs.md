@@ -39,5 +39,9 @@ If you get an error about connection refused or IP address in use, do `ps` to li
 -   Use pm2 to serve Express server for production mode
 -   Reference documentation from <https://github.com/robertvunabandi/guide-on-mitopenid> project
 -   Remove extraneous console.log statements
+-   Make sure `auth` and `sampleImplementation` are in their own modules
+    -   Decouple OpenPubKey stuff from main application stuff
 -   Turn on prevent implicit any Typescript check in backend + fix issues (if time permits)
 -   Make sure I do stuff with the nonce token (send from client side to backend) to verify ID token
+-   Add support for working with access tokens 
+-   Fix camel case in AuthConfig (frontend and backend)

@@ -27,3 +27,4 @@ Our client implementation does not require a specific hosting solution, and inde
 
 For our purposes, we hosted our example website on an Ubuntu 18.02 VM running on SIPB's XVM service. Both the frontend and backend are run and managed by Nginx.
 
+node build/index.js
