@@ -16,8 +16,10 @@ interface loginResponse {
   email: string,
 }
 
-
-async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoint with necessary query parameters
+/**
+ * Redirect user to OIDC Authentication Endpoint for login with necessary query parameters
+ */
+async function redirectToLogin() {
 
   //Generate new state and nonce values
   const state = toHexString(generateRandomBytes(AUTH_CONFIG.state_length)); //TODO: Cryptography bind value with a browser cookie
@@ -43,18 +45,6 @@ async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoi
   console.log(destinationURL);
   window.location.replace(destinationURL);
 }
-
-const oidcAuthProvider = {
-  isAuthenticated: false,
-  signin(callback: VoidFunction) {
-    oidcAuthProvider.isAuthenticated = true;
-    setTimeout(callback, 100); // fake async
-  },
-  signout(callback: VoidFunction) {
-    oidcAuthProvider.isAuthenticated = false;
-    setTimeout(callback, 100);
-  },
-};
 
 function OidcResponseHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -113,6 +103,6 @@ function OidcResponseHandler() {
   );
 }
 
-export { oidcAuthProvider, redirectToLogin, OidcResponseHandler};
+export { redirectToLogin, OidcResponseHandler};
 
 
