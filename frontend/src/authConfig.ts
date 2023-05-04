@@ -56,7 +56,7 @@ export const AUTH_CONFIG: AuthConfig = {
     nonce_length: 32,
     state_localstorage_name: 'oidc-request-state',
     nonce_cookie_name: 'oidc-request-nonce',
-    nonce_cookie_options: { path: "/api/login",  //Restrict access to this backend endpoint only
+    nonce_cookie_options: { path: "/api/login",                            //Restrict access to this backend endpoint only
                             sameSite: "strict",                            //sameSite set to "Strict" to disallow sending on cross-site requests
                             secure: true                                   //secure set to True restrict cookie to be sent over HTTPS only
                         }

@@ -62,13 +62,14 @@ function OidcResponseHandler() {
 
   //Validate the state parameter we get back is what we generated on client side
   if(state === localStorage.getItem(AUTH_CONFIG.state_localstorage_name)) {
-    initialMsg = "Waiting to hear back from server..."; //User logged in to OIDC page, but still needs to be logged
-                                                        //into our backend system.
+    initialMsg = "Waiting to hear back from server...";           //User logged in to OIDC page, but still needs to be logged
+                                                                  //into our backend system.
   } else {
     initialMsg = "Login Failed. Please try again.";
   }
-  const [loginMsg, setLoginMsg] = useState(initialMsg);
+  localStorage.removeItem(AUTH_CONFIG.state_localstorage_name); //Remove state variable after validation
 
+  const [loginMsg, setLoginMsg] = useState(initialMsg);
   /**
    * Should be called only once (e.g. upon successful login to OIDC endpoint).
    */
