@@ -38,7 +38,6 @@ function AuthProvider({ children }: { children: React.ReactNode }): React.ReactE
 function useAuth() {
   return React.useContext(AuthContext);
 }
-/****************************************************************************************/
 
 
 /**

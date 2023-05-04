@@ -4,6 +4,7 @@ import Cookies from 'universal-cookie';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from "./authProvider";
+
 /**
  * Expected response for server to return to user's browser after querying /login endpoint
  */
@@ -39,7 +40,12 @@ async function redirectToLogin() {
 
   const cookies = new Cookies();
   cookies.set('oidc-request-state', state, { path: '/' }); //TODO: Do I need to set other security flags
-  cookies.set('oidc-request-nonce', toHexString(nonce), { path: '/' , httpOnly: true}); //HTTPonly prevent access by client-side scripts
+  cookies.set('oidc-request-nonce', toHexString(nonce), 
+    { path: AUTH_CONFIG.nonce_endpoint_restriction,  //Restrict access to this backend endpoint only
+      httpOnly: true,                                //HTTPonly prevent access by client-side scripts
+      sameSite: "strict",                            //sameSite set to "Strict" to disallow sending on cross-site requests
+      secure: true,                                  //secure set to True restrict cookie to be sent over HTTPS only
+    }); 
 
   const destinationURL = AUTH_CONFIG.auth_endpoint + "?" + params.toString();
   console.log(destinationURL);
@@ -57,7 +63,6 @@ function OidcResponseHandler() {
   const cookies = new Cookies();
 
   let initialMsg: string;
-
   //Validate the state parameter we get back is 
   //what we generated on client side
   if(state === cookies.get("oidc-request-state")) {
@@ -66,18 +71,31 @@ function OidcResponseHandler() {
   } else {
     initialMsg = "Login Failed. Please try again.";
   }
-
   const [loginMsg, setLoginMsg] = useState(initialMsg);
 
-  useEffect(() => { //Should be called only once (e.g. upon successful login to OIDC endpoint)
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code })
-    };
-    fetch(AUTH_CONFIG.login_uri, requestOptions)
-    .then(response => response.json())
-    .then((data:loginResponse) => { //Get back response from backend server
+  /**
+   * Should be called only once (e.g. upon successful login to OIDC endpoint).
+   */
+  useEffect(() => { 
+
+    //Note: We're using an async wrapper to make easier to work with
+    //results from fetch() since useEffect is a synchronous function
+
+    /**
+     * Validates and sends the received user `code` to the backend
+     * for token retrieval and validation, then parses the result 
+     * browser-side
+     */
+    async function sendCode(): Promise<void> {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code })
+      };
+
+      //Send user's code to backend server
+      const response = await fetch(AUTH_CONFIG.login_uri, requestOptions); 
+      const data: loginResponse = await response.json();
       console.log(data);
       if(data.success){ 
         //Login was successful! Expect id_token
@@ -93,8 +111,11 @@ function OidcResponseHandler() {
         //Login was unsuccessful. Let user know about error message.
         setLoginMsg(`Login failed! ${data.error_msg}`);
       }
-    });
-  },[code,auth]); 
+    }
+
+    sendCode();
+
+  },[navigate,code,auth,location]); 
 
   return (
     <div>
