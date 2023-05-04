@@ -38,9 +38,12 @@ async function redirectToLogin() {
   params.append("state",state);
   params.append("nonce",nonce_hash); 
 
+  //Store the state in localStorage (to be used for code validation)
+  localStorage.set(AUTH_CONFIG.state_localstorage_name, state, { path: '/' }); //TODO: Do I need to set other security flags
+
+  //Store the nonce as a httpOnly cookie (to be sent to backend for ID token validation)
   const cookies = new Cookies();
-  cookies.set('oidc-request-state', state, { path: '/' }); //TODO: Do I need to set other security flags
-  cookies.set('oidc-request-nonce', toHexString(nonce), 
+  cookies.set(AUTH_CONFIG.nonce_cookie_name, toHexString(nonce), 
     { path: AUTH_CONFIG.nonce_endpoint_restriction,  //Restrict access to this backend endpoint only
       httpOnly: true,                                //HTTPonly prevent access by client-side scripts
       sameSite: "strict",                            //sameSite set to "Strict" to disallow sending on cross-site requests
@@ -100,7 +103,7 @@ function OidcResponseHandler() {
       if(data.success){ 
         //Login was successful! Expect id_token
         setLoginMsg("Login successful!");
-        localStorage.setItem(AUTH_CONFIG.id_token_local_storage, data.id_token); //Save id_token to local storage
+        localStorage.setItem(AUTH_CONFIG.idtoken_localstorage_name, data.id_token); //Save id_token to local storage
 
         const from = location.state?.from?.pathname || "/";
         auth.signin(data.email, ()=>{
