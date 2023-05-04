@@ -58,7 +58,6 @@ app.post('/api/login', handleLogin);
 
 // route to add a new chat message
 app.post('/api/messages', (req: Request, res: Response) => {
-    console.log('post req')
     const { id, sender, text, sig}: { id: number, sender: string, text: string, sig: string } = req.body;
     addMessage(id, sender, text, sig);
     res.sendStatus(200);

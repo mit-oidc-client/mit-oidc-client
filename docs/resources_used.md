@@ -20,12 +20,17 @@
 1. Typescript + Node project: <https://khalilstemmler.com/blogs/typescript/node-starter-project/>
 2. Setting up Express template with TS: <https://blog.logrocket.com/how-to-set-up-node-typescript-express/>
 3. Microsoft recommendations for Typescript/Node start code: <https://github.com/microsoft/TypeScript-Node-Starter#typescript--node>
-4. 
+4. Parsing cookies in requests: <http://expressjs.com/en/resources/middleware/cookie-parser.html>
+5. SHA-256 of hex value in Node.js: <https://stackoverflow.com/questions/27970431/using-sha-256-with-nodejs-crypto>
 
 ## Frontend
 
 1. Setup React project with Typescript: <https://create-react-app.dev/docs/adding-typescript/>
 2. Replace src/ with code from React-Router Auth example: <https://github.com/remix-run/react-router/tree/dev/examples/auth>
+3. Cookies security flags: <https://www.invicti.com/learn/cookie-security-flags/>
+4. Cookies security flags part 2: <https://medium.com/swlh/secure-httponly-samesite-http-cookies-attributes-and-set-cookie-explained-fc3c753dfeb6>
+5. Sending cookies with fetch: <https://stackoverflow.com/questions/34558264/fetch-api-with-cookie>
+6. Understanding Context Managers and Context API: <https://dev.to/shareef/context-api-with-typescript-and-next-js-2m25>
 
 ## Certificates
 

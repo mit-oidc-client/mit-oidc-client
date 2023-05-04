@@ -11,8 +11,6 @@ import { createHash } from "crypto";
  * Handles the login procedure given an OpenID auth code (which may or may not be valid)
  */
 async function handleLogin(req: Request, res: Response) {
-    console.log(req.body);
-    console.log(req.cookies);
     res.clearCookie(AUTH_CONFIG.nonce_cookie_name, AUTH_CONFIG.nonce_cookie_options); 
     const code = req.body["code"];
     const userResponse: loginResponse = { //Response we will send back to user/browser
@@ -94,7 +92,6 @@ async function handleLogin(req: Request, res: Response) {
 
     //Proceed to validate ID token and fetch information about the user
     if(oidcJSON.id_token) {
-        console.log("ID token:",oidcJSON.id_token);
         //Fetch the OIDC server public key
         const oidcPublicKeys = (await axios.get<jwkResponse>(AUTH_CONFIG.public_key)).data;
         if("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
@@ -104,7 +101,6 @@ async function handleLogin(req: Request, res: Response) {
             try {
                 //Verify the token, and if valid, return the decoded payload
                 decoded = jwt.verify(oidcJSON.id_token,pemPublicKey); 
-                console.log(decoded);
             } catch(error) {
                 //Handle issue with token not having valid signature
                 return respondWithError("OIDC error: Invalid signature in OIDC ID token");
@@ -121,7 +117,6 @@ async function handleLogin(req: Request, res: Response) {
 
             //Validate nonce in ID token matches one sent during token request
             const nonceHash = createHash('sha256').update(nonceCookie,"hex").digest('hex'); //Need to re-hash nonce
-            console.log("nonceHash:",nonceHash);
             const nonceMatches = (decoded.nonce === nonceHash);
             if(!nonceMatches) return respondWithError("OIDC Error: Nonce in ID token doesn't match up with original value");
 
@@ -165,7 +160,6 @@ async function getUserInfo(access_token: string, id_token: object): Promise<user
         error_msg: "",
         email: "",
     }
-    console.log("access_token:",access_token);
     let oidcResponse;
     try {
         oidcResponse = await axios.get(AUTH_CONFIG.user_info_endpoint,
@@ -174,9 +168,7 @@ async function getUserInfo(access_token: string, id_token: object): Promise<user
         //TODO: The Client MUST verify that the OP that responded was the intended OP through a TLS server certificate check, per RFC 6125 [RFC6125]. 
         
         userInfoResults.email = oidcResponse.data.email; //Get email from JSON object
-        console.log("email",oidcResponse.data.email);
     } catch(error) {
-        console.log(error);
         userInfoResults.success = false;
         userInfoResults.error_msg = "Request to OIDC user endpoint to retrieve profile info errored out."
         userInfoResults.email = "";

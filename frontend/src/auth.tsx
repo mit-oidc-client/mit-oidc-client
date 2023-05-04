@@ -41,12 +41,11 @@ async function redirectToLogin() {
   //Store the state in localStorage (to be used for code validation)
   localStorage.setItem(AUTH_CONFIG.state_localstorage_name, state); //TODO: Do I need to set other security flags
 
-  //Store the nonce as a httpOnly cookie (to be sent to backend for ID token validation)
+  //Store the nonce as a Secure, SameSite cookie (to be sent to backend for ID token validation)
   const cookies = new Cookies();
   cookies.set(AUTH_CONFIG.nonce_cookie_name, toHexString(nonce), AUTH_CONFIG.nonce_cookie_options);
 
   const destinationURL = AUTH_CONFIG.auth_endpoint + "?" + params.toString();
-  console.log(destinationURL);
   window.location.replace(destinationURL);
 }
 
@@ -94,7 +93,6 @@ function OidcResponseHandler() {
       //Send user's code to backend server
       const response = await fetch(AUTH_CONFIG.login_uri, requestOptions); 
       const data: loginResponse = await response.json();
-      console.log(data);
       if(data.success){ 
         //Login was successful! Expect id_token
         setLoginMsg("Login successful!");
