@@ -24,7 +24,7 @@ async function redirectToLogin() {
 
   //Generate new state and nonce values
   const state = toHexString(generateRandomBytes(AUTH_CONFIG.state_length)); //TODO: Cryptography bind value with a browser cookie
-  const nonce = generateRandomBytes(AUTH_CONFIG.state_length); //TODO: Save as a HTTP only session cookie
+  const nonce = generateRandomBytes(AUTH_CONFIG.nonce_length); //TODO: Save as a HTTP only session cookie
   const nonce_hash = await window.crypto.subtle.digest('SHA-256',nonce).then((hashBuffer)=> {
       const hashArray = new Uint8Array(hashBuffer);
       return toHexString(hashArray);
@@ -43,12 +43,7 @@ async function redirectToLogin() {
 
   //Store the nonce as a httpOnly cookie (to be sent to backend for ID token validation)
   const cookies = new Cookies();
-  cookies.set(AUTH_CONFIG.nonce_cookie_name, toHexString(nonce), 
-    { path: AUTH_CONFIG.nonce_endpoint_restriction,  //Restrict access to this backend endpoint only
-      //httpOnly: true,                                //HTTPonly prevent access by client-side scripts
-      sameSite: "strict",                            //sameSite set to "Strict" to disallow sending on cross-site requests
-      secure: true,                                  //secure set to True restrict cookie to be sent over HTTPS only
-    }); 
+  cookies.set(AUTH_CONFIG.nonce_cookie_name, toHexString(nonce), AUTH_CONFIG.nonce_cookie_options);
 
   const destinationURL = AUTH_CONFIG.auth_endpoint + "?" + params.toString();
   console.log(destinationURL);
