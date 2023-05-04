@@ -34,7 +34,7 @@ interface AuthConfig {
     nonce_cookie_name: string,      //Name of nonce variable stored in browser cookie
 } 
 
-const OIDC_AUTHORITY_URI = "https://oidc.mit.edu";
+const OIDC_AUTHORITY_URI = "https://oidc.mit.edu"; 
 const DOMAIN_URI = "https://unofficial-oidc-client.xvm.mit.edu"
 
 export const AUTH_CONFIG: AuthConfig = {
@@ -47,7 +47,7 @@ export const AUTH_CONFIG: AuthConfig = {
     response_type: "code",
     grantType: "authorization_code",                    //mandated by MIT OIDC server
     tokenType: "Bearer",                                //mandated by MIT OIDC server
-    tokenIssuer: OIDC_AUTHORITY_URI,
+    tokenIssuer: "https://oidc.mit.edu/",               //NOTE the trailing slash
 
     //Client-specific configs 
     redirect_uri: DOMAIN_URI + "/oidc-response", 

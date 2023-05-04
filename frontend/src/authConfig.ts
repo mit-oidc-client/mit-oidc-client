@@ -40,7 +40,7 @@ export const AUTH_CONFIG: AuthConfig = {
     response_type: "code",
     grantType: "authorization_code",                    //mandated by MIT OIDC server
     tokenType: "Bearer",                                //mandated by MIT OIDC server
-    tokenIssuer: OIDC_AUTHORITY_URI,
+    tokenIssuer: "https://oidc.mit.edu/",               //NOTE the trailing slash
 
     //Client-specific configs 
     redirect_uri: DOMAIN_URI + "/oidc-response", 
