@@ -16,5 +16,5 @@
         "noEmit": true,
         "jsx": "react-jsx"
     },
-    "include": ["src", "src/sampleImplementation/types.ts"]
+    "include": ["src", "src/chatroom/types.ts"]
 }

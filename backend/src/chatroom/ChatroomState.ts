@@ -1,3 +1,5 @@
+// Data structure that stores short history of messages while server is running
+
 import { MessageType } from './types';
 
 

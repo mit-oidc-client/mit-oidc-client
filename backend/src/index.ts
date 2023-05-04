@@ -4,9 +4,8 @@ import dotenv from 'dotenv';
 import { handleLogin } from './auth';
 
 /****************************************************************************************/
-import { Server } from 'socket.io';
-import { addMessage, getMessages } from './sampleImplementation/ChatroomState';
-import { MessageType } from './sampleImplementation/types';
+import { addMessage, getMessages } from './chatroom/ChatroomState';
+import { MessageType } from './chatroom/types';
 /****************************************************************************************/
 
 // Load in environment variables
@@ -49,9 +48,6 @@ app.post('/api/login', handleLogin);
 /****************************************************************************************/
 /** sample implementation: Chatroom */
 
-const io = new Server(server)
-// console.log('io', io)
-
 // route to add a new chat message
 app.post('/api/messages', (req: Request, res: Response) => {
     const { id, sender, text, sig}: { id: number, sender: string, text: string, sig: string } = req.body;
@@ -63,25 +59,6 @@ app.post('/api/messages', (req: Request, res: Response) => {
 app.get('/api/messages', (req: Request, res: Response<MessageType[]>) => {
     const messages: MessageType[] = getMessages();
     res.json(messages);
-});
-
-
-// Add an event listener for when a client connects
-io.on('connect', (socket) => {
-    console.log('Client connected', socket.connected);
-
-    // Add an event listener for when a client sends a new message
-    socket.on('newMessage', (message) => {
-        console.log('New message:', message);
-
-        // Broadcast the new message to all connected clients
-        io.emit('newMessage', message);
-    });
-
-    // Add an event listener for when a client disconnects
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
 });
 /****************************************************************************************/
 
