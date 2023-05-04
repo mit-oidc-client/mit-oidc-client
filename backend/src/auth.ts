@@ -5,6 +5,7 @@ import jwkToPem from 'jwk-to-pem';
 import { AUTH_CONFIG } from './authConfig';
 import { eqSet } from "./authHelper";
 import { jwkResponse, loginResponse, oidcToken, userInfoResponse,idToken} from "./authType";
+import { createHash } from "crypto";
 
 /**
  * Handles the login procedure given an OpenID auth code (which may or may not be valid)
@@ -82,6 +83,7 @@ async function handleLogin(req: Request, res: Response) {
 
     //Proceed to validate ID token and fetch information about the user
     if(oidcJSON.id_token) {
+        console.log("ID token:",oidcJSON.id_token);
         //Fetch the OIDC server public key
         const oidcPublicKeys = (await axios.get<jwkResponse>(AUTH_CONFIG.public_key)).data;
         if("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
@@ -100,12 +102,16 @@ async function handleLogin(req: Request, res: Response) {
             const correctIssuer = (decoded.iss === AUTH_CONFIG.tokenIssuer);
             if (!correctIssuer) return respondWithError("OIDC Error: Issuer of token is not as expected");
 
+            const currTimeSeconds = Math.floor(Date.now()/1000); //Note: Timestamps in ID tokens are measured in seconds
+
             //Validate the expiration and issue time stamps
-            if(decoded.exp < Date.now()) return respondWithError("OIDC Error: Given ID token has already expired");
-            if(decoded.iat  > Date.now()) return respondWithError("OIDC Error: Given ID token is issued in the future");
+            if(decoded.exp < currTimeSeconds) return respondWithError("OIDC Error: Given ID token has already expired");
+            if(decoded.iat  > currTimeSeconds) return respondWithError("OIDC Error: Given ID token is issued in the future");
 
             //Validate nonce in ID token matches one sent during token request
-            const nonceMatches = (decoded.nonce === nonceCookie);
+            const nonceHash = createHash('sha256').update(nonceCookie,"hex").digest('hex'); //Need to re-hash nonce
+            console.log("nonceHash:",nonceHash);
+            const nonceMatches = (decoded.nonce === nonceHash);
             if(!nonceMatches) return respondWithError("OIDC Error: Nonce in ID token doesn't match up with original value");
 
             //Validate client_id included in audiences list

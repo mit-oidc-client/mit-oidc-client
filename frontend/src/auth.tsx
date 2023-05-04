@@ -45,7 +45,7 @@ async function redirectToLogin() {
   const cookies = new Cookies();
   cookies.set(AUTH_CONFIG.nonce_cookie_name, toHexString(nonce), 
     { path: AUTH_CONFIG.nonce_endpoint_restriction,  //Restrict access to this backend endpoint only
-      httpOnly: true,                                //HTTPonly prevent access by client-side scripts
+      //httpOnly: true,                                //HTTPonly prevent access by client-side scripts
       sameSite: "strict",                            //sameSite set to "Strict" to disallow sending on cross-site requests
       secure: true,                                  //secure set to True restrict cookie to be sent over HTTPS only
     }); 
@@ -63,10 +63,9 @@ function OidcResponseHandler() {
 
   const state = searchParams.get("state");
   const code = searchParams.get("code");
-  const cookies = new Cookies();
 
   let initialMsg: string;
-  
+
   //Validate the state parameter we get back is what we generated on client side
   if(state === localStorage.getItem(AUTH_CONFIG.state_localstorage_name)) {
     initialMsg = "Waiting to hear back from server..."; //User logged in to OIDC page, but still needs to be logged
@@ -94,7 +93,7 @@ function OidcResponseHandler() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code }),
-        credentials: "same-origin" //Should include nonce, which is an HTTPonly cookie
+        credentials: "include" //Should include nonce, which is an HTTPonly cookie
       };
 
       //Send user's code to backend server
