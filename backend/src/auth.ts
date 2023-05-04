@@ -11,8 +11,9 @@ import { jwkResponse, loginResponse, oidcToken, userInfoResponse,idToken} from "
  */
 async function handleLogin(req: Request, res: Response) {
     console.log(req.body);
+    console.log(req.cookies);
     const code = req.body["code"];
-    const userResponse: loginResponse = { //Response we will send back to user
+    const userResponse: loginResponse = { //Response we will send back to user/browser
         success: true,
         error_msg: "",
         id_token: "",
@@ -23,8 +24,6 @@ async function handleLogin(req: Request, res: Response) {
      * Helper function: Given an error message,
      * output a JSON response to user with that error.
      * 
-     * Side effect: Will exit prematurely from handleLogin() due to sending respond.
-     * 
      * Note: For our system we're choosing to output the error to the user/browser. However,
      * if you don't want to leak the reason why we failed to authenticate, you can
      * alternatively write the error_msg to output to a server-side log instead (Not implemented).
@@ -34,6 +33,12 @@ async function handleLogin(req: Request, res: Response) {
         userResponse.error_msg = errorMsg;
         res.status(200).json(userResponse);
     }
+    //Check if nonce cookie was provided
+    if(!(AUTH_CONFIG.nonce_cookie_name in req.cookies)) {
+        respondWithError("Input Error: No nonce cookie was provided in request");
+        return;
+    }
+    const nonceCookie: string = req.cookies[AUTH_CONFIG.nonce_cookie_name];
 
     //Send code to OIDC to get back token
     let oidcResponse;
@@ -52,60 +57,58 @@ async function handleLogin(req: Request, res: Response) {
     } catch(error) {
         respondWithError("Input Error: Invalid user code was provided");
     }
-
-    //TODO: Check error code of response to see that we didn't send it a bad code
     const oidcJSON: oidcToken = oidcResponse.data;
 
     //Verify that user provided us with necessary scope
     const hasToken = oidcJSON.hasOwnProperty("id_token");
     const hasScope = oidcJSON.hasOwnProperty("scope");
-
     const expectedScope = new Set(AUTH_CONFIG.scope.split(" "));
     const givenScope = ((hasScope && oidcJSON.scope)? new Set<String>(oidcJSON.scope.split(" ")): new Set<String>());
-    
     const hasFullScope = eqSet(expectedScope, givenScope);
-    
     if(!hasFullScope || !hasToken) {
         respondWithError("User Error: Please make sure you allow the necessary scopes!");
     }
 
-    //TODO: Check token_type is correct
+    //Check token_type is correct
     const correctTokenType = (oidcJSON.token_type === AUTH_CONFIG.tokenType);
     if(!correctTokenType) {
         respondWithError("OIDC error: Unexpected token type received in ID token");
     }
-
     //TODO: Store refresh_token (first need to ask for offline_access first)
 
     //Proceed to validate ID token and fetch information about the user
     if(oidcJSON.id_token) {
-
         //Fetch the OIDC server public key
         const oidcPublicKeys = (await axios.get<jwkResponse>(AUTH_CONFIG.public_key)).data;
-
         if("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
             const firstKey = oidcPublicKeys.keys[0]; 
             const pemPublicKey = jwkToPem(firstKey);
-
             let decoded: idToken;
             try {
                 //Verify the token, and if valid, return the decoded payload
                 decoded = jwt.verify(oidcJSON.id_token,pemPublicKey); 
-                //console.log("Decoded",decoded);
             } catch(error) {
                 //Handle issue with token not having valid signature
                 respondWithError("OIDC error: Invalid signature in OIDC ID token");
                 return;
             }
-            //Proceed to do more checking...
-            //e.g., validate all parts of the ID token claims
+            //Validate the issuer
             const correctIssuer = (decoded.iss === AUTH_CONFIG.tokenIssuer)
-            
+            if (!correctIssuer) respondWithError("OIDC Error: Issuer of token is not as expected");
+
+            //Validate the expiration and issue time stamps
             if(decoded.exp < Date.now()) respondWithError("OIDC Error: Given ID token has already expired");
             if(decoded.iat  > Date.now()) respondWithError("OIDC Error: Given ID token is issued in the future");
 
-            //Assured that ID token is valid, try to query user information
-            //to retrieve profile info
+            //Validate nonce in ID token matches one sent during token request
+            const nonceMatches = (decoded.nonce === nonceCookie);
+            if(!nonceMatches) respondWithError("OIDC Error: Nonce in ID token doesn't match up with original value");
+
+            //Validate client_id included in audiences list
+            const clientIdInAudience = decoded.aud.includes(AUTH_CONFIG.client_id);
+            if(!clientIdInAudience) respondWithError("OIDC Error: Audience list in ID token doesn't include our app's client id");
+
+            //Assured that ID token is valid, try to query user information using access token
             const profileResults = await getUserInfo(oidcJSON.access_token, decoded);
 
             if(profileResults.success){
