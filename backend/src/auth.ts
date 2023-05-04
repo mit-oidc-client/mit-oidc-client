@@ -56,6 +56,7 @@ async function handleLogin(req: Request, res: Response) {
         });
     } catch(error) {
         respondWithError("Input Error: Invalid user code was provided");
+        return;
     }
     const oidcJSON: oidcToken = oidcResponse.data;
 
@@ -67,13 +68,16 @@ async function handleLogin(req: Request, res: Response) {
     const hasFullScope = eqSet(expectedScope, givenScope);
     if(!hasFullScope || !hasToken) {
         respondWithError("User Error: Please make sure you allow the necessary scopes!");
+        return;
     }
 
     //Check token_type is correct
     const correctTokenType = (oidcJSON.token_type === AUTH_CONFIG.tokenType);
     if(!correctTokenType) {
         respondWithError("OIDC error: Unexpected token type received in ID token");
+        return;
     }
+    
     //TODO: Store refresh_token (first need to ask for offline_access first)
 
     //Proceed to validate ID token and fetch information about the user
@@ -87,26 +91,26 @@ async function handleLogin(req: Request, res: Response) {
             try {
                 //Verify the token, and if valid, return the decoded payload
                 decoded = jwt.verify(oidcJSON.id_token,pemPublicKey); 
+                console.log(decoded);
             } catch(error) {
                 //Handle issue with token not having valid signature
-                respondWithError("OIDC error: Invalid signature in OIDC ID token");
-                return;
+                return respondWithError("OIDC error: Invalid signature in OIDC ID token");
             }
             //Validate the issuer
-            const correctIssuer = (decoded.iss === AUTH_CONFIG.tokenIssuer)
-            if (!correctIssuer) respondWithError("OIDC Error: Issuer of token is not as expected");
+            const correctIssuer = (decoded.iss === AUTH_CONFIG.tokenIssuer);
+            if (!correctIssuer) return respondWithError("OIDC Error: Issuer of token is not as expected");
 
             //Validate the expiration and issue time stamps
-            if(decoded.exp < Date.now()) respondWithError("OIDC Error: Given ID token has already expired");
-            if(decoded.iat  > Date.now()) respondWithError("OIDC Error: Given ID token is issued in the future");
+            if(decoded.exp < Date.now()) return respondWithError("OIDC Error: Given ID token has already expired");
+            if(decoded.iat  > Date.now()) return respondWithError("OIDC Error: Given ID token is issued in the future");
 
             //Validate nonce in ID token matches one sent during token request
             const nonceMatches = (decoded.nonce === nonceCookie);
-            if(!nonceMatches) respondWithError("OIDC Error: Nonce in ID token doesn't match up with original value");
+            if(!nonceMatches) return respondWithError("OIDC Error: Nonce in ID token doesn't match up with original value");
 
             //Validate client_id included in audiences list
             const clientIdInAudience = decoded.aud.includes(AUTH_CONFIG.client_id);
-            if(!clientIdInAudience) respondWithError("OIDC Error: Audience list in ID token doesn't include our app's client id");
+            if(!clientIdInAudience) return respondWithError("OIDC Error: Audience list in ID token doesn't include our app's client id");
 
             //Assured that ID token is valid, try to query user information using access token
             const profileResults = await getUserInfo(oidcJSON.access_token, decoded);
