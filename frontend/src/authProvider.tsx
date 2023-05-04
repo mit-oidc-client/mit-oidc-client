@@ -27,7 +27,7 @@ function AuthProvider({ children }: { children: React.ReactNode }): React.ReactE
 
   let signout = (callback: VoidFunction) => {
     setUser(null);
-    localStorage.removeItem(AUTH_CONFIG.id_token_local_storage);
+    localStorage.removeItem(AUTH_CONFIG.idtoken_localstorage_name);
     callback();
   };
 
