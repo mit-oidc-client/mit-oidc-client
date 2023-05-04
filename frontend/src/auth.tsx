@@ -39,7 +39,7 @@ async function redirectToLogin() {
   params.append("nonce",nonce_hash); 
 
   //Store the state in localStorage (to be used for code validation)
-  localStorage.set(AUTH_CONFIG.state_localstorage_name, state, { path: '/' }); //TODO: Do I need to set other security flags
+  localStorage.set(AUTH_CONFIG.state_localstorage_name, state); //TODO: Do I need to set other security flags
 
   //Store the nonce as a httpOnly cookie (to be sent to backend for ID token validation)
   const cookies = new Cookies();
