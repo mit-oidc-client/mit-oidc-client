@@ -90,10 +90,11 @@ function OidcResponseHandler() {
      * browser-side
      */
     async function sendCode(): Promise<void> {
-      const requestOptions = {
+      const requestOptions: RequestInit = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code })
+        body: JSON.stringify({ code: code }),
+        credentials: "same-origin" //Should include nonce, which is an HTTPonly cookie
       };
 
       //Send user's code to backend server
