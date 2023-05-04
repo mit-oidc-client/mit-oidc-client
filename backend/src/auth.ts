@@ -13,6 +13,7 @@ import { createHash } from "crypto";
 async function handleLogin(req: Request, res: Response) {
     console.log(req.body);
     console.log(req.cookies);
+    res.clearCookie(AUTH_CONFIG.nonce_cookie_name, AUTH_CONFIG.nonce_cookie_options); 
     const code = req.body["code"];
     const userResponse: loginResponse = { //Response we will send back to user/browser
         success: true,
@@ -20,7 +21,16 @@ async function handleLogin(req: Request, res: Response) {
         id_token: "",
         email: ""
     }
-
+    /**
+     * Helper function: Instruct the client browser to clear the nonce cookie
+     * 
+     * Note: We include the original cookie options because most browsers are set to 
+     * clear only when then the options provided in clear header are identical to 
+     * the original cookie
+     */
+    function clearNonceCookie(){
+        res.clearCookie(AUTH_CONFIG.nonce_cookie_name, AUTH_CONFIG.nonce_cookie_options); 
+    }
     /**
      * Helper function: Given an error message,
      * output a JSON response to user with that error.
@@ -32,6 +42,7 @@ async function handleLogin(req: Request, res: Response) {
     function respondWithError(errorMsg:string) {
         userResponse.success = false;
         userResponse.error_msg = errorMsg;
+        clearNonceCookie();
         res.status(200).json(userResponse);
     }
     //Check if nonce cookie was provided
@@ -125,10 +136,12 @@ async function handleLogin(req: Request, res: Response) {
                 userResponse.success = true;
                 userResponse.id_token = oidcJSON.id_token;
                 userResponse.email = profileResults.email;
+                clearNonceCookie();
                 res.status(200).json(userResponse);
             } else {
                 userResponse.success = false;
                 userResponse.error_msg = profileResults.error_msg;
+                clearNonceCookie();
                 res.status(200).json(userResponse);
             }
         }

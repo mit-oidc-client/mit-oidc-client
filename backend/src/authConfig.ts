@@ -1,3 +1,5 @@
+import { CookieOptions } from "express";
+
 const fs = require('fs');
 
 const secretsData = fs.readFileSync('../cert/secrets.json'); //We choose to read in the client_secret 
@@ -26,12 +28,11 @@ interface AuthConfig {
 
     idtoken_localstorage_name: string, //Name to be given to variable in Local Storage that contains the user's id_token 
                                         //(upon successful authentication)
-    nonce_endpoint_restriction: string, //Backend endpoint which the nonce parameter should be sent to 
-                                        //NOTE: Should be same as endpoint in login_uri
     state_length: number,           //The byte length of `state` variable to be sent as part of login request
     nonce_length: number,           //The byte length of `state` variable to be generated as part of login flow
     state_localstorage_name: string,//Name of state variable stored in LocalStorage
     nonce_cookie_name: string,      //Name of nonce variable stored in browser cookie
+    nonce_cookie_options: CookieOptions
 } 
 
 const OIDC_AUTHORITY_URI = "https://oidc.mit.edu"; 
@@ -57,10 +58,13 @@ export const AUTH_CONFIG: AuthConfig = {
     scope: "openid email",                             //depends on your application needs
 
     idtoken_localstorage_name: "id_token",
-    nonce_endpoint_restriction: "/api/login",
     state_length: 32,                                  //Note: OIDC docs has no requirement on length 
                                                        //(though can't be infinite), as long as it's long enough to be unguessable
     nonce_length: 32,
     state_localstorage_name: 'oidc-request-state',
-    nonce_cookie_name: 'oidc-request-nonce'
+    nonce_cookie_name: 'oidc-request-nonce',
+    nonce_cookie_options: { path: "/api/login",  //Restrict access to this backend endpoint only
+                            sameSite: "strict",                            //sameSite set to "Strict" to disallow sending on cross-site requests
+                            secure: true                                   //secure set to True restrict cookie to be sent over HTTPS only
+                        }
 };
