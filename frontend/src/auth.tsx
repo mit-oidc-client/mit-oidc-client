@@ -39,7 +39,7 @@ async function redirectToLogin() {
   params.append("nonce",nonce_hash); 
 
   //Store the state in localStorage (to be used for code validation)
-  localStorage.set(AUTH_CONFIG.state_localstorage_name, state); //TODO: Do I need to set other security flags
+  localStorage.setItem(AUTH_CONFIG.state_localstorage_name, state); //TODO: Do I need to set other security flags
 
   //Store the nonce as a httpOnly cookie (to be sent to backend for ID token validation)
   const cookies = new Cookies();
@@ -66,9 +66,9 @@ function OidcResponseHandler() {
   const cookies = new Cookies();
 
   let initialMsg: string;
-  //Validate the state parameter we get back is 
-  //what we generated on client side
-  if(state === cookies.get("oidc-request-state")) {
+  
+  //Validate the state parameter we get back is what we generated on client side
+  if(state === localStorage.getItem(AUTH_CONFIG.state_localstorage_name)) {
     initialMsg = "Waiting to hear back from server..."; //User logged in to OIDC page, but still needs to be logged
                                                         //into our backend system.
   } else {
