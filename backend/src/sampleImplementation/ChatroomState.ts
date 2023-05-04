@@ -1,5 +1,6 @@
 import { MessageType } from './types';
 
+
 let messages: MessageType[] = [];
 const MAX_LENGTH = 10
 
