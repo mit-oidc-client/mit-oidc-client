@@ -14,6 +14,8 @@ dotenv.config();
 const https = require("https");
 const fs = require("fs");
 const  FormData = require('form-data');
+const cookieParser = require("cookie-parser");
+
 
 const app: Express = express();
 const port = process.env.PORT;
@@ -22,6 +24,7 @@ const serverHost = process.env.SERVER_HOST; //should be "localhost" (if using re
 
 app.use(express.json()); //Use middleware to parse JSON body 
                          //Assumes POST done with Content-Type: application/json
+app.use(cookieParser()); //Use middleware to parse cookies
 
 // start the Express server
 const server = https

@@ -6,6 +6,9 @@ import {
 } from "react-router-dom";
 import { AUTH_CONFIG } from "./authConfig";
 
+/****************************************************************************************/
+/** Definition for Auth Context API *****************************************************/
+/****************************************************************************************/
 interface AuthContextType {
     user: any;
     signin: (user: string, callback: VoidFunction) => void;
@@ -14,7 +17,7 @@ interface AuthContextType {
   
 let AuthContext = React.createContext<AuthContextType>(null!);
 
-function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthProvider({ children }: { children: React.ReactNode }): React.ReactElement {
   let [user, setUser] = React.useState<any>(null);
 
   let signin = (newUser: string, callback: VoidFunction) => {
@@ -24,7 +27,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   let signout = (callback: VoidFunction) => {
     setUser(null);
-    localStorage.removeItem(AUTH_CONFIG.id_token_local_storage);
+    localStorage.removeItem(AUTH_CONFIG.idtoken_localstorage_name);
     callback();
   };
 
@@ -36,7 +39,11 @@ function useAuth() {
   return React.useContext(AuthContext);
 }
 
-function AuthStatus() {
+
+/**
+ * Provide information on whether the user is logged in
+ */
+function AuthStatus(): React.ReactElement {
   let auth = useAuth();
   let navigate = useNavigate();
 
@@ -57,8 +64,12 @@ function AuthStatus() {
     </p>
   );
 }
-  
-function RequireAuth({ children }: { children: JSX.Element }) {
+
+/**
+ * Provide wrapper element that requires user to be authenticated whenever 
+ * they want to access a child element inside it
+ */
+function RequireAuth({ children }: { children: JSX.Element }): React.ReactElement {
   let auth = useAuth();
   let location = useLocation();
 

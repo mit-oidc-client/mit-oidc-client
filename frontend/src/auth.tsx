@@ -4,6 +4,7 @@ import Cookies from 'universal-cookie';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from "./authProvider";
+
 /**
  * Expected response for server to return to user's browser after querying /login endpoint
  */
@@ -16,12 +17,14 @@ interface loginResponse {
   email: string,
 }
 
-
-async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoint with necessary query parameters
+/**
+ * Redirect user to OIDC Authentication Endpoint for login with necessary query parameters
+ */
+async function redirectToLogin() {
 
   //Generate new state and nonce values
   const state = toHexString(generateRandomBytes(AUTH_CONFIG.state_length)); //TODO: Cryptography bind value with a browser cookie
-  const nonce = generateRandomBytes(AUTH_CONFIG.state_length); //TODO: Save as a HTTP only session cookie
+  const nonce = generateRandomBytes(AUTH_CONFIG.nonce_length); //TODO: Save as a HTTP only session cookie
   const nonce_hash = await window.crypto.subtle.digest('SHA-256',nonce).then((hashBuffer)=> {
       const hashArray = new Uint8Array(hashBuffer);
       return toHexString(hashArray);
@@ -35,26 +38,16 @@ async function redirectToLogin() { //Redirect user to OIDC Authentication Endpoi
   params.append("state",state);
   params.append("nonce",nonce_hash); 
 
+  //Store the state in localStorage (to be used for code validation)
+  localStorage.setItem(AUTH_CONFIG.state_localstorage_name, state); //TODO: Do I need to set other security flags
+
+  //Store the nonce as a Secure, SameSite cookie (to be sent to backend for ID token validation)
   const cookies = new Cookies();
-  cookies.set('oidc-request-state', state, { path: '/' }); //TODO: Do I need to set other security flags
-  cookies.set('oidc-request-nonce', toHexString(nonce), { path: '/' , httpOnly: true}); //HTTPonly prevent access by client-side scripts
+  cookies.set(AUTH_CONFIG.nonce_cookie_name, toHexString(nonce), AUTH_CONFIG.nonce_cookie_options);
 
   const destinationURL = AUTH_CONFIG.auth_endpoint + "?" + params.toString();
-  console.log(destinationURL);
   window.location.replace(destinationURL);
 }
-
-const oidcAuthProvider = {
-  isAuthenticated: false,
-  signin(callback: VoidFunction) {
-    oidcAuthProvider.isAuthenticated = true;
-    setTimeout(callback, 100); // fake async
-  },
-  signout(callback: VoidFunction) {
-    oidcAuthProvider.isAuthenticated = false;
-    setTimeout(callback, 100);
-  },
-};
 
 function OidcResponseHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -64,35 +57,47 @@ function OidcResponseHandler() {
 
   const state = searchParams.get("state");
   const code = searchParams.get("code");
-  const cookies = new Cookies();
 
   let initialMsg: string;
 
-  //Validate the state parameter we get back is 
-  //what we generated on client side
-  if(state === cookies.get("oidc-request-state")) {
-    initialMsg = "Waiting to hear back from server..."; //User logged in to OIDC page, but still needs to be logged
-                                                        //into our backend system.
+  //Validate the state parameter we get back is what we generated on client side
+  if(state === localStorage.getItem(AUTH_CONFIG.state_localstorage_name)) {
+    initialMsg = "Waiting to hear back from server...";           //User logged in to OIDC page, but still needs to be logged
+                                                                  //into our backend system.
   } else {
     initialMsg = "Login Failed. Please try again.";
   }
+  localStorage.removeItem(AUTH_CONFIG.state_localstorage_name); //Remove state variable after validation
 
   const [loginMsg, setLoginMsg] = useState(initialMsg);
+  /**
+   * Should be called only once (e.g. upon successful login to OIDC endpoint).
+   */
+  useEffect(() => { 
 
-  useEffect(() => { //Should be called only once (e.g. upon successful login to OIDC endpoint)
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code })
-    };
-    fetch(AUTH_CONFIG.login_uri, requestOptions)
-    .then(response => response.json())
-    .then((data:loginResponse) => { //Get back response from backend server
-      console.log(data);
+    //Note: We're using an async wrapper to make easier to work with
+    //results from fetch() since useEffect is a synchronous function
+
+    /**
+     * Validates and sends the received user `code` to the backend
+     * for token retrieval and validation, then parses the result 
+     * browser-side
+     */
+    async function sendCode(): Promise<void> {
+      const requestOptions: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code }),
+        credentials: "include" //Should include nonce, which is an HTTPonly cookie
+      };
+
+      //Send user's code to backend server
+      const response = await fetch(AUTH_CONFIG.login_uri, requestOptions); 
+      const data: loginResponse = await response.json();
       if(data.success){ 
         //Login was successful! Expect id_token
         setLoginMsg("Login successful!");
-        localStorage.setItem(AUTH_CONFIG.id_token_local_storage, data.id_token); //Save id_token to local storage
+        localStorage.setItem(AUTH_CONFIG.idtoken_localstorage_name, data.id_token); //Save id_token to local storage
 
         const from = location.state?.from?.pathname || "/";
         auth.signin(data.email, ()=>{
@@ -103,8 +108,11 @@ function OidcResponseHandler() {
         //Login was unsuccessful. Let user know about error message.
         setLoginMsg(`Login failed! ${data.error_msg}`);
       }
-    });
-  },[code,auth]); 
+    }
+
+    sendCode();
+
+  },[navigate,code,auth,location]); 
 
   return (
     <div>
@@ -113,6 +121,6 @@ function OidcResponseHandler() {
   );
 }
 
-export { oidcAuthProvider, redirectToLogin, OidcResponseHandler};
+export { redirectToLogin, OidcResponseHandler};
 
 
