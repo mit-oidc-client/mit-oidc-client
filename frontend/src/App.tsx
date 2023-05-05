@@ -73,8 +73,6 @@ function PublicPage() {
   return <div className="public">
       <h3>Public</h3>
       <p>You are currently viewing publicly-known information</p>
-      {/*TODO: move to Protect Page */}
-      <ChatRoom />
   </div>;
 }
 
@@ -82,6 +80,7 @@ function ProtectedPage() {
   return <div className="protected">
       <h3>Protect</h3>
       <p>You are currently viewing protected (potentially sensitive) information</p>
+      <ChatRoom />
   </div>;
 }
 
