@@ -73,6 +73,7 @@ function PublicPage() {
   return <div className="public">
       <h3>Public</h3>
       <p>You are currently viewing publicly-known information</p>
+      <ChatRoom />
   </div>;
 }
 

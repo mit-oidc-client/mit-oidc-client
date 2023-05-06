@@ -1,47 +1,55 @@
 import React, { useRef, useEffect, useState } from "react";
 import axios, { AxiosResponse } from 'axios';
-import { MessageType } from './types';
+import { DisplayedMessageType, MessageType } from './types';
 import { useAuth } from "../authProvider";
+import { FaCheckCircle, FaExclamation, FaSpinner } from 'react-icons/fa';
 
 // API requests
-const sendMessage = (id: number, sender: string, text: string, sig: string): Promise<AxiosResponse<MessageType>> => {
-  return axios.post<MessageType>('https://unofficial-oidc-client.xvm.mit.edu/api/messages', { id, sender, text, sig });
+const sendMessage = (sender: string, text: string, sig: string): Promise<AxiosResponse<MessageType>> => {
+  return axios.post<MessageType>('https://unofficial-oidc-client.xvm.mit.edu/api/messages', { sender, text, sig });
 }
 
-const getMessages = (): Promise<AxiosResponse<MessageType[]>> => {
-  return axios.get<MessageType[]>('https://unofficial-oidc-client.xvm.mit.edu/api/messages');
+const getMessages = (id: number): Promise<AxiosResponse<DisplayedMessageType[]>> => {
+  return axios.get<DisplayedMessageType[]>('https://unofficial-oidc-client.xvm.mit.edu/api/messages?id=' + id.toString());
 }
 
 // TODO: Signing function
 const signMessage = (text: string): string => {
-  return text
+  // const osm = PKTObject.sign(text, privKey)
+  const osm = text
+  return osm
 }
 
 const ChatRoom = () => {
-  const chatRoomRef = useRef<HTMLDivElement>(null);
   const auth = useAuth();
-
-  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [localId, setlocalId] = useState<number>(-1)
+  const [verifying, setVerifying] = useState<boolean>(false)
+  const [messages, setMessages] = useState<DisplayedMessageType[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
-  // scroll to the bottom of the chat section on mount
+
   useEffect(() => {
-    chatRoomRef.current?.scrollIntoView({ behavior: "smooth" });
-    fetchMessages();
+    fetchMessages(localId);
 
     // fetches every 2 seconds
     const intervalId = window.setInterval(() => {
-      fetchMessages();
+      fetchMessages(localId);
     }, 2000);
-    
+
     return () => {
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [localId, verifying]);
 
-  const fetchMessages = () => {
-    getMessages().then((response) => {
-      setMessages(response.data);
+
+
+  const fetchMessages = (localId: number) => {
+    getMessages(localId).then((response) => {
+      const newMessages = response.data
+      if (newMessages.length > 0) {
+        setMessages(prevMessages => [...prevMessages, ...newMessages]);
+        setlocalId(newMessages[newMessages.length - 1]['id']);
+      }
     });
   }
 
@@ -49,13 +57,39 @@ const ChatRoom = () => {
   const handleNewMessage = (event: React.FormEvent) => {
     event.preventDefault();
 
-    // Hard coded id
     // TODO: fill in arguments
-    sendMessage(1, auth.user, newMessage, signMessage(newMessage)).then(() => {
+    sendMessage(auth.user, newMessage, signMessage(newMessage)).then(() => {
       setNewMessage('');
-      fetchMessages();
+      fetchMessages(localId);
     })
   };
+
+  const renderVerifyStatus = (id: number, verifyStatus: 'unverified' | 'loading' | 'verified' | 'failed') => {
+    switch (verifyStatus) {
+      case 'unverified':
+        return <FaCheckCircle style={{color: 'grey', cursor: 'pointer'}} onClick={() => onVerify(id)}/>;
+      case 'loading':
+        return <FaSpinner />;
+      case 'verified':
+        return <FaCheckCircle style={{color: 'green'}} onClick={() => onVerify(id)}/>;
+      case 'failed':
+        return <FaExclamation style={{color: 'red'}} onClick={() => onVerify(id)}/>
+      default:
+        return <span>something went wrong</span>;
+    }
+  }
+
+  const onVerify = (id: number) => {
+    messages[id].verifyStatus = 'loading'
+    setVerifying(prevState => !prevState)
+    setTimeout(() => {
+      if (id % 2) {messages[id].verifyStatus = 'verified'}
+      else {messages[id].verifyStatus = 'failed'}
+      setVerifying(prevState => !prevState)
+    }, 1000);
+    
+    
+  }
 
   return (
     <div>
@@ -63,11 +97,11 @@ const ChatRoom = () => {
         {messages.map((message) => (
           <div key={message.id} style={{ padding: "2px" }}>
             <strong style={{color: message.sender === auth.user ? 'blue' : 'black'}}>{message.sender}: </strong>
-            <span>{message.text}</span>
+            <span style={{marginRight: '10px'}}>{message.text}</span>
+            {renderVerifyStatus(message.id, message.verifyStatus)}
             {/* <span>{message.sig}</span> */}
           </div>
         ))}
-        <div ref={chatRoomRef} />
       </div>
       <form onSubmit={handleNewMessage}>
         <input type="text" value={newMessage} onChange={(event) => setNewMessage(event.target.value)} placeholder="Type a message..." />

@@ -5,7 +5,7 @@ import { handleLogin } from './auth';
 
 /****************************************************************************************/
 import { addMessage, getMessages } from './chatroom/ChatroomState';
-import { MessageType } from './chatroom/types';
+import { DisplayedMessageType, MessageType } from './chatroom/types';
 /****************************************************************************************/
 
 // Load in environment variables
@@ -51,16 +51,17 @@ app.post('/api/login', handleLogin);
 /****************************************************************************************/
 /** sample implementation: Chatroom */
 
-// route to add a new chat message
-app.post('/api/messages', (req: Request, res: Response) => {
-    const { id, sender, text, sig}: { id: number, sender: string, text: string, sig: string } = req.body;
-    addMessage(id, sender, text, sig);
+// Handle POST requests to /api/messages
+app.post('/api/messages', (req: Request<MessageType>, res: Response) => {
+    const { sender, text, sig}: { sender: string, text: string, sig: string } = req.body;
+    addMessage(sender, text, sig);
     res.sendStatus(200);
 });
 
-// route to get the chat history
-app.get('/api/messages', (req: Request, res: Response<MessageType[]>) => {
-    const messages: MessageType[] = getMessages();
+// Handle GET requests to /api/messages?id={id}
+app.get('/api/messages', (req: Request, res: Response<DisplayedMessageType[]>) => {
+    const id = Number(req.query.id)
+    const messages: DisplayedMessageType[] = getMessages(id);
     res.json(messages);
 });
 /****************************************************************************************/

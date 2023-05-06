@@ -1,24 +1,20 @@
 // Data structure that stores short history of messages while server is running
 
-import { MessageType } from './types';
+import { DisplayedMessageType, MessageType } from './types';
 
+let messages: DisplayedMessageType[] = [];
+let id_onServer = 0
 
-let messages: MessageType[] = [];
-const MAX_LENGTH = 10
-
-export const addMessage = (id: number, sender: string, text: string, sig: string): void => {
+export const addMessage = (sender: string, text: string, sig: string): void => {
   const message: MessageType = { 
-    id,
     sender, 
     text,
     sig,
   };
-  messages.push(message);
-  if (messages.length > MAX_LENGTH) {
-    messages = messages.slice(1)
-  }
+  messages.push({...message, id: id_onServer, verifyStatus: 'unverified'});
+  id_onServer += 1
 };
 
-export const getMessages = (): MessageType[] => {
-  return messages;
+export const getMessages = (id: number): DisplayedMessageType[] => {
+  return messages.filter(message => message.id > id)
 };
