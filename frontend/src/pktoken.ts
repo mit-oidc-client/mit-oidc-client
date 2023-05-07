@@ -23,25 +23,6 @@ interface jwkResponse {
 }
 
 export class opkService {
-    // private publicKey: Uint8Array;
-    // private privateKey: Uint8Array;
-    // private cic: cicJSON;
-    // private pkString: string;
-    // private skString: string;
-    // private pkToken: string;
-
-    // private static async generateKeys(): Promise<void> {
-    //     // Create our keys
-    //     const privateKey = ed.utils.randomPrivateKey();
-    //     const publicKey = await ed.getPublicKey(privateKey);
-
-    //     //TODO save to local storage
-
-    //     // this.skString = Buffer.from(this.privateKey).toString("base64");
-    //     // this.pkString = Buffer.from(this.publicKey).toString("base64");
-    //     // console.log("generated keys");
-    // }
-
     /**
      * Generates new nonce & key pair
      * @returns Promise of nonce
