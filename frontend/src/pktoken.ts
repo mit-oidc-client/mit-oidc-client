@@ -3,7 +3,6 @@ import { generateRandomBytes, toHexString } from "./authHelper";
 import * as ed from "noble-ed25519";
 import { SHA3 } from "sha3";
 import jwt from "jsonwebtoken";
-import { assert } from "console";
 import axios from "axios";
 import jwkToPem from "jwk-to-pem";
 import * as jwkpem from "jwk-to-pem";
@@ -104,7 +103,7 @@ export class opkService {
      * Checks if a pkToken is valid. Throws error if invalid
      * @param pkToken pkToken as a JWS of the form userHeader.opHeader.payload.opSig.userSig
      */
-    public static async verifyPKToken(pkToken: string): Promise<void> {
+    public static async verifyPKToken(pkToken: string): Promise<boolean> {
         //check client id, aud, iss
         //extract kid from OP header
         //uses kid to get PKo and verify OP signature
@@ -123,8 +122,8 @@ export class opkService {
         const cicString = JSON.stringify(cicJSON);
 
         //check client id, aud, iss
-        assert(payloadJSON.aud.includes(AUTH_CONFIG.client_id));
-        assert(payloadJSON.iss === "https://oidc.mit.edu/");
+        if (!payloadJSON.aud.includes(AUTH_CONFIG.client_id)) return false;
+        if (!(payloadJSON.iss === "https://oidc.mit.edu/")) return false;
 
         //verify OP signature
         //Fetch the OIDC server public key
@@ -133,19 +132,21 @@ export class opkService {
         if ("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
             const firstKey = oidcPublicKeys.keys[0];
             const pemPublicKey = jwkToPem(firstKey);
-            assert(jwt.verify(opToken, pemPublicKey));
+            if (!jwt.verify(opToken, pemPublicKey)) return false;
         } else {
-            assert(false, "no openid public key available");
+            return false;
         }
 
         //check nonce = sha3(cic)
         const nonce = payloadJSON.nonce;
-        assert(this.hashHelper(Buffer.from(cicString, "utf8")).toString("base64") === nonce);
+        if (!(this.hashHelper(Buffer.from(cicString, "utf8")).toString("base64") === nonce))
+            return false;
 
         //unpack nonce & verify pk signature
         const userPubKey = Buffer.from(cicJSON.upk, "base64");
         //check cic is well formed (has alg,rz,upk)
-        assert(jwt.verify(userHeader + "." + payload + "." + userSig, userPubKey));
+        if (!jwt.verify(userHeader + "." + payload + "." + userSig, userPubKey)) return false;
+        return true;
     }
 
     public static generateOSM(message: string): string {
@@ -163,18 +164,20 @@ export class opkService {
         return osm;
     }
 
-    public static verifyOSM(osm: string, pkToken: string): void {
+    public static verifyOSM(osm: string, pkToken: string): boolean {
         const [osmHeader, payload, osmSig] = osm.split(".");
         const osmHeaderJSON = this.b64ToJSON<osmHeaderJSON>(osmHeader);
         const pkTokenJSON = JSON.parse(pkToken);
         //challenge: check typ & alg, kid commits to the pkt,
-        assert(osmHeaderJSON.typ === "osm");
-        assert(osmHeaderJSON.alg === pkTokenJSON.cic.alg);
-        assert(osmHeaderJSON.kid === this.hashHelper(Buffer.from(pkToken)).toString("base64"));
+        if (!(osmHeaderJSON.typ === "osm")) return false;
+        if (!(osmHeaderJSON.alg === pkTokenJSON.cic.alg)) return false;
+        if (!(osmHeaderJSON.kid === this.hashHelper(Buffer.from(pkToken)).toString("base64")))
+            return false;
         //challenge response:
         this.verifyPKToken(pkToken);
         //verify: check signature on osm verifies under upk in pkt
         const userPubKey = Buffer.from(pkTokenJSON.cic.upk, "base64");
-        assert(jwt.verify(osm, userPubKey));
+        if (!jwt.verify(osm, userPubKey)) return false;
+        return true;
     }
 }

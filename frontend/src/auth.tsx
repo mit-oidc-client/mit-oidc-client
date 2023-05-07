@@ -4,6 +4,7 @@ import Cookies from "universal-cookie";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "./authProvider";
+import { opkService } from "./pktoken";
 
 /**
  * Expected response for server to return to user's browser after querying /login endpoint
@@ -23,11 +24,12 @@ interface loginResponse {
 async function redirectToLogin() {
     //Generate new state and nonce values
     const state = toHexString(generateRandomBytes(AUTH_CONFIG.state_length)); //TODO: Cryptography bind value with a browser cookie
-    const nonce = generateRandomBytes(AUTH_CONFIG.nonce_length); //TODO: Save as a HTTP only session cookie
-    const nonce_hash = await window.crypto.subtle.digest("SHA-256", nonce).then((hashBuffer) => {
-        const hashArray = new Uint8Array(hashBuffer);
-        return toHexString(hashArray);
-    });
+    // const nonce = generateRandomBytes(AUTH_CONFIG.nonce_length); //TODO: Save as a HTTP only session cookie
+    // const nonce_hash = await window.crypto.subtle.digest("SHA-256", nonce).then((hashBuffer) => {
+    //     const hashArray = new Uint8Array(hashBuffer);
+    //     return toHexString(hashArray);
+    // });
+    const nonce_hash = await opkService.generateNonce();
 
     const params = new URLSearchParams();
     params.append("client_id", AUTH_CONFIG.client_id);
@@ -44,7 +46,8 @@ async function redirectToLogin() {
     const cookies = new Cookies();
     cookies.set(
         AUTH_CONFIG.nonce_cookie_name,
-        toHexString(nonce),
+        // toHexString(nonce),
+        nonce_hash,
         AUTH_CONFIG.nonce_cookie_options
     );
 
@@ -100,6 +103,8 @@ function OidcResponseHandler() {
                 //Login was successful! Expect id_token
                 setLoginMsg("Login successful!");
                 localStorage.setItem(AUTH_CONFIG.idtoken_localstorage_name, data.id_token); //Save id_token to local storage
+
+                opkService.generatePKToken(data.id_token);
 
                 const from = location.state?.from?.pathname || "/";
                 auth.signin(data.email, () => {
