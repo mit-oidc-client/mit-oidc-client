@@ -15,6 +15,7 @@
         "crypto": "npm:crypto-browserify",
         "crypto-js": "^4.1.1",
         "dotenv": "^16.0.3",
+        "jose": "^4.14.4",
         "jsonwebtoken": "^9.0.0",
         "jwk-to-pem": "^2.0.5",
         "noble-ed25519": "^1.2.6",

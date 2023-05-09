@@ -1,10 +1,10 @@
 import { AUTH_CONFIG } from "./authConfig";
 import { generateRandomBytes, toHexString } from "./authHelper";
-import * as ed from "noble-ed25519";
+// import * as ed from "noble-ed25519";
 import { SHA3 } from "sha3";
-import jwt from "jsonwebtoken";
+// import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import axios from "axios";
-import jwkToPem from "jwk-to-pem";
+// import jwkToPem from "jwk-to-pem";
 import * as jwkpem from "jwk-to-pem";
 
 interface cicJSON {
@@ -20,7 +20,11 @@ interface osmHeaderJSON {
 interface jwkResponse {
     keys: jwkpem.JWK;
 }
-
+const ecdsaParams = {
+    name: "ECDSA",
+    namedCurve: "P-384"
+};
+const openIDAlg = "RSASSA-PKCS1-v1_5";
 export class opkService {
     /**
      * Generates new nonce & key pair
@@ -28,11 +32,17 @@ export class opkService {
      */
     public static async generateNonce(): Promise<string> {
         // this.generateKeys();
-        const privateKey = ed.utils.randomPrivateKey();
-        const publicKey = await ed.getPublicKey(privateKey);
+        // const privateKey = ed.utils.randomPrivateKey();
+        // const publicKey = await ed.getPublicKey(privateKey);
 
-        const pkString = Buffer.from(publicKey).toString("base64");
-        const skString = Buffer.from(privateKey).toString("base64");
+        const keypair = await window.crypto.subtle.generateKey(ecdsaParams, true, [
+            "sign",
+            "verify"
+        ]);
+
+        const pkString = await this.exportKey(keypair.publicKey);
+        const skString = await this.exportKey(keypair.privateKey);
+        console.log(pkString, skString);
 
         localStorage.setItem("opk_public_key", pkString);
         localStorage.setItem("opk_private_key", skString);
@@ -72,30 +82,88 @@ export class opkService {
         return JSON.parse(json);
     }
 
+    private static JSONtob64(json: JSON): string {
+        const jsonString = JSON.stringify(json);
+        return Buffer.from(jsonString, "utf8").toString("base64");
+    }
+
+    // private static async exportKey(key: CryptoKey): Promise<string> {
+    //     const keyAsJwk = await window.crypto.subtle.exportKey("jwk", key);
+    //     return this.JSONtob64(keyAsJwk as JSON);
+    // }
+
+    // private static async importKey(b64: string): Promise<CryptoKey> {
+    //     const key = this.b64ToJSON(b64);
+    //     const keyAsCrypto = await window.crypto.subtle.importKey("jwk", key, ecdsaParams, true, [
+    //         "sign",
+    //         "verify"
+    //     ]);
+    //     return keyAsCrypto;
+    // }
+
+    private static async exportKey(key: CryptoKey): Promise<string> {
+        const keyExport: ArrayBuffer = await window.crypto.subtle.exportKey("raw", key);
+        return Buffer.from(keyExport).toString("base64");
+    }
+
+    private static async importKey(b64: string): Promise<CryptoKey> {
+        const key: Buffer = Buffer.from(b64);
+        const keyAsCrypto: CryptoKey = await window.crypto.subtle.importKey(
+            "raw",
+            key,
+            ecdsaParams,
+            true,
+            ["sign", "verify"]
+        );
+        return keyAsCrypto;
+    }
+
+    private static async arrayBufferTob64(buf: ArrayBuffer) {
+        const ret = Buffer.from(buf).toString("base64");
+        return ret;
+    }
+
+    private static async b64ToArrayBuffer(b64: string) {
+        const ret = Buffer.from(b64, "base64");
+        return ret;
+    }
+
     /**
      * Generates a pkToken from a given idToken
      *
      * @param idToken idToken returned by OP, as a b64 string/JWT
      */
-    public static generatePKToken(idToken: string): string {
+    public static async generatePKToken(idToken: string): Promise<string> {
         //make protected header from cic
         //sign w private key
         //add signature,header to id token
 
-        const privateKey = Buffer.from(localStorage.getItem("opk_private_key") || "", "base64");
-        const cic = this.b64ToJSON(localStorage.getItem("opk_cic") || "");
+        const privateKey: CryptoKey = await this.importKey(
+            localStorage.getItem("opk_private_key") || ""
+        );
+        const cic: JSON = this.b64ToJSON(localStorage.getItem("opk_cic") || "");
 
         const [opHeader, payload, opSig] = idToken.split(".");
         const payloadJSONString = JSON.stringify(this.b64ToJSON(payload));
-        const opkJWT = jwt
-            .sign(payloadJSONString, privateKey, { header: cic as cicJSON })
-            .split(".");
-        const userSig = opkJWT[2];
-        const userHeader = opkJWT[0];
+        // const opkJWT = jwt
+        //     .sign(payloadJSONString, privateKey, { header: cic as cicJSON })
+        //     .split(".");
+
+        // const userSig = opkJWT[2];
+        // const userHeader = opkJWT[0];
+        const userHeader = this.JSONtob64(cic);
+        const userSigBuf = await window.crypto.subtle.sign(
+            ecdsaParams,
+            privateKey,
+            Buffer.from(payloadJSONString + JSON.stringify(cic), "utf8")
+        );
+        const userSig = this.arrayBufferTob64(userSigBuf);
 
         const pkToken = userHeader + "." + opHeader + "." + payload + "." + opSig + "." + userSig;
 
         localStorage.setItem("opk_pktoken", pkToken);
+        console.log(payloadJSONString);
+        console.log(pkToken);
         return pkToken;
     }
 
@@ -131,8 +199,18 @@ export class opkService {
 
         if ("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
             const firstKey = oidcPublicKeys.keys[0];
-            const pemPublicKey = jwkToPem(firstKey);
-            if (!jwt.verify(opToken, pemPublicKey)) return false;
+            // const pemPublicKey = jwkToPem(firstKey);
+            // if (!jwt.verify(opToken, opPubKey)) return false;
+            const opKey = await window.crypto.subtle.importKey("jwk", firstKey, openIDAlg, true, [
+                "verify"
+            ]);
+            const ver = await window.crypto.subtle.verify(
+                openIDAlg,
+                opKey,
+                await this.b64ToArrayBuffer(opSig),
+                await this.b64ToArrayBuffer(opHeader + payload)
+            );
+            if (!ver) throw Error("invalid id token");
         } else {
             return false;
         }
@@ -143,28 +221,41 @@ export class opkService {
             return false;
 
         //unpack nonce & verify pk signature
-        const userPubKey = Buffer.from(cicJSON.upk, "base64");
+        // const userPubKey = Buffer.from(cicJSON.upk, "base64");
+        const userPubKey = await this.importKey(cicJSON.upk);
         //check cic is well formed (has alg,rz,upk)
-        if (!jwt.verify(userHeader + "." + payload + "." + userSig, userPubKey)) return false;
+        // if (!jwt.verify(userHeader + "." + payload + "." + userSig, userPubKey)) return false;
+        const ver = await window.crypto.subtle.verify(
+            ecdsaParams,
+            userPubKey,
+            await this.b64ToArrayBuffer(userSig),
+            await this.b64ToArrayBuffer(userHeader + payload)
+        );
+        if (!ver) throw Error("invalid id token");
         return true;
     }
 
-    public static generateOSM(message: string): string {
-        //TODO get cic, pktoken, privatekey from localstorage
+    public static async generateOSM(message: string): Promise<string> {
         const cic = JSON.parse(localStorage.getItem("opk_cic") || "");
         const pkToken = localStorage.getItem("opk_pktoken") || "";
-        const privateKey = Buffer.from(localStorage.getItem("opk_private_key") || "", "base64");
+        const privateKey = await this.importKey(localStorage.getItem("opk_private_key") || "");
 
-        const header = {
+        const header: any = {
             alg: cic.alg,
             kid: this.hashHelper(Buffer.from(pkToken, "utf8")).toString("base64"),
             typ: "osm"
         };
-        const osm = jwt.sign(message, privateKey, { header: header });
+        const headerJSON = header as JSON;
+        // const osm = jwt.sign(message, privateKey, { header: header });
+        // const osm = await new jose.SignJWT(message).setProtectedHeader({ header }).sign(privateKey);
+        const sigData = Buffer.from("TODO");
+        const sig = window.crypto.subtle.sign(ecdsaParams, privateKey, sigData);
+        const osm =
+            this.JSONtob64(headerJSON) + "." + Buffer.from(message).toString("base64") + "." + sig;
         return osm;
     }
 
-    public static verifyOSM(osm: string, pkToken: string): boolean {
+    public static async verifyOSM(osm: string, pkToken: string): Promise<boolean> {
         const [osmHeader, payload, osmSig] = osm.split(".");
         const osmHeaderJSON = this.b64ToJSON<osmHeaderJSON>(osmHeader);
         const pkTokenJSON = JSON.parse(pkToken);
@@ -176,8 +267,15 @@ export class opkService {
         //challenge response:
         this.verifyPKToken(pkToken);
         //verify: check signature on osm verifies under upk in pkt
-        const userPubKey = Buffer.from(pkTokenJSON.cic.upk, "base64");
-        if (!jwt.verify(osm, userPubKey)) return false;
+        const userPubKey = await this.importKey(pkTokenJSON.cic.upk);
+        // if (!jwt.verify(osm, userPubKey)) return false;
+        const ver = await window.crypto.subtle.verify(
+            ecdsaParams,
+            userPubKey,
+            await this.b64ToArrayBuffer(osmSig),
+            await this.b64ToArrayBuffer(osmHeader + payload)
+        );
+        if (!ver) throw Error("invalid id token");
         return true;
     }
 }
