@@ -1,10 +1,7 @@
 import { AUTH_CONFIG } from "./authConfig";
 import { generateRandomBytes, toHexString } from "./authHelper";
-// import * as ed from "noble-ed25519";
 import { SHA3 } from "sha3";
-// import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import axios from "axios";
-// import jwkToPem from "jwk-to-pem";
 import * as jwkpem from "jwk-to-pem";
 import { Buffer } from "buffer";
 
@@ -136,13 +133,13 @@ export class opkService {
             "sign",
             "verify"
         ]);
-        console.log("keys generated");
         const pkString = await this.exportKey(keypair.publicKey);
         const skString = await this.exportKey(keypair.privateKey);
-        // console.log(pkString, skString);
 
         localStorage.setItem("opk_public_key", pkString);
         localStorage.setItem("opk_private_key", skString);
+
+        console.log("keys generated");
     }
 
     /**
@@ -150,9 +147,6 @@ export class opkService {
      * @returns Promise of nonce
      */
     public static async generateNonce(): Promise<string> {
-        // this.generateKeys();
-        // const privateKey = ed.utils.randomPrivateKey();
-        // const publicKey = await ed.getPublicKey(privateKey);
         if (localStorage.getItem("opk_public_key") === null) {
             console.log("no keys found, generating keys now");
             await this.generateKeys();
@@ -166,9 +160,7 @@ export class opkService {
         const nonce = this.hashHelper(Buffer.from(cicString, "utf8")).toString("base64");
 
         localStorage.setItem("opk_cic", cicString);
-        console.log("set cic", cicString);
 
-        console.log("created new nonce", nonce);
         return nonce;
     }
 
@@ -206,6 +198,7 @@ export class opkService {
     /**
      * Checks if a pkToken is valid. Throws error if invalid
      * @param pkToken pkToken as a JWS of the form userHeader.opHeader.payload.opSig.userSig
+     * @returns true if pkToken is verified, false if fails verification
      */
     public static async verifyPKToken(pkToken: string): Promise<boolean> {
         //check client id, aud, iss
@@ -223,6 +216,7 @@ export class opkService {
         }>(payload);
         const cicJSON = this.b64ToJSON<cicJSON>(userHeader);
         const cicString = JSON.stringify(cicJSON);
+
         //check client id, aud, iss
         if (!payloadJSON.aud.includes(AUTH_CONFIG.client_id)) return false;
         if (!(payloadJSON.iss === "https://oidc.mit.edu/")) return false;
@@ -246,7 +240,7 @@ export class opkService {
                 await this.b64ToArrayBuffer(opSig),
                 this.generateSigData(opHeader, payload)
             );
-            if (!verIdToken) throw Error("invalid id token");
+            if (!verIdToken) return false;
         } else {
             return false;
         }
@@ -270,7 +264,7 @@ export class opkService {
             this.generateSigData(userHeader, payload)
         );
         console.log("verifying pktoken", ver);
-        if (!ver) throw Error("invalid id token");
+        if (!ver) return false;
         return true;
     }
 
