@@ -20,9 +20,6 @@ interface JWK {
     key_ops?: Array<string> | undefined;
     x?: string | undefined;
     y?: string | undefined;
-    // kid: string;
-    // x5t: string;
-    // x5c: string[];
 }
 interface cicJSON {
     upk: string;
@@ -48,6 +45,7 @@ const ecdsaParams = {
 };
 const openIDAlg = "RSASSA-PKCS1-v1_5";
 const openIDAlgImport = { name: openIDAlg, hash: "SHA-256" };
+
 export class opkService {
     /**
      *
@@ -70,23 +68,34 @@ export class opkService {
         return JSON.parse(json);
     }
 
+    /**
+     *
+     * @param json json input
+     * @returns string of b64 interpretation of input stringified
+     */
     private static JSONtob64(json: JSON): string {
         const jsonString = JSON.stringify(json);
         return Buffer.from(jsonString, "utf8").toString("base64");
     }
 
+    /**
+     *
+     * @param key CryptoKey input
+     * @returns exported key as base64 string representation of JWK
+     */
     private static async exportKey(key: CryptoKey): Promise<string> {
-        console.log("in export key");
         const keyAsJwk: JWK = await window.crypto.subtle.exportKey("jwk", key);
-        console.log("exported");
         return this.JSONtob64(keyAsJwk as JSON);
     }
 
+    /**
+     *
+     * @param b64 b64 string representation of JWK
+     * @param signing true if key is for signing, false if for verifying
+     * @returns CryptoKey representation of key input
+     */
     private static async importKey(b64: string, signing: boolean): Promise<CryptoKey> {
-        console.log("in importkey");
         const key = this.b64ToJSON(b64) as JWK;
-        console.log("jwk formate");
-        console.log(key);
         let keyAsCrypto: CryptoKey;
         if (signing) {
             keyAsCrypto = await window.crypto.subtle.importKey("jwk", key, ecdsaGenParams, true, [
@@ -97,7 +106,6 @@ export class opkService {
                 "verify"
             ]);
         }
-        console.log("cryptokey format");
         return keyAsCrypto;
     }
 
@@ -110,13 +118,20 @@ export class opkService {
         const ret = Buffer.from(b64, "base64");
         return ret;
     }
-
+    /**
+     *
+     * @param header header as b64 string
+     * @param payload payload as b64 string
+     * @returns Buffer object ready for signature
+     */
     private static generateSigData(header: string, payload: string): Buffer {
         return Buffer.from(header + "." + payload, "utf-8");
     }
 
+    /**
+     * Generates new keys and saves to localStorage
+     */
     private static async generateKeys(): Promise<void> {
-        console.log("in genKeys");
         const keypair = await window.crypto.subtle.generateKey(ecdsaGenParams, true, [
             "sign",
             "verify"
@@ -124,29 +139,25 @@ export class opkService {
         console.log("keys generated");
         const pkString = await this.exportKey(keypair.publicKey);
         const skString = await this.exportKey(keypair.privateKey);
-        console.log(pkString, skString);
+        // console.log(pkString, skString);
 
         localStorage.setItem("opk_public_key", pkString);
         localStorage.setItem("opk_private_key", skString);
     }
 
     /**
-     * Generates new nonce & key pair
+     * Generates new nonce, and generates keys if keys don't already exist
      * @returns Promise of nonce
      */
     public static async generateNonce(): Promise<string> {
         // this.generateKeys();
         // const privateKey = ed.utils.randomPrivateKey();
         // const publicKey = await ed.getPublicKey(privateKey);
-        console.log("in gennonce");
-        console.log("ree" + localStorage.getItem("opk_public_key"));
         if (localStorage.getItem("opk_public_key") === null) {
             console.log("no keys found, generating keys now");
             await this.generateKeys();
-            console.log("keys generated");
         }
         const pkString = localStorage.getItem("opk_public_key") || "";
-        console.log("pkstring for nonce", pkString);
         const alg = "ECDSA";
         const rz = toHexString(generateRandomBytes(AUTH_CONFIG.state_length));
 
@@ -163,31 +174,20 @@ export class opkService {
 
     /**
      * Generates a pkToken from a given idToken
-     *
      * @param idToken idToken returned by OP, as a b64 string/JWT
+     * @returns string pkToken represented by a "double" JWT;  userHeader + "." + opHeader + "." + payload + "." + opSig + "." + userSig;
      */
     public static async generatePKToken(idToken: string): Promise<string> {
         //make protected header from cic
         //sign w private key
         //add signature,header to id token
-        console.log("in genpkt");
         const privateKey: CryptoKey = await this.importKey(
             localStorage.getItem("opk_private_key") || "",
             true
         );
-        console.log("private key loaded");
         const cic: JSON = JSON.parse(localStorage.getItem("opk_cic") || "");
-        console.log("cic loaded", cic);
         const [opHeader, payload, opSig] = idToken.split(".");
-        const payloadJSONString = JSON.stringify(this.b64ToJSON(payload));
-        // const opkJWT = jwt
-        //     .sign(payloadJSONString, privateKey, { header: cic as cicJSON })
-        //     .split(".");
 
-        // const userSig = opkJWT[2];
-        // const userHeader = opkJWT[0];
-        console.log("idtoken", idToken);
-        console.log(payloadJSONString);
         const userHeader = this.JSONtob64(cic);
         const userSigBuf = await window.crypto.subtle.sign(
             ecdsaParams,
@@ -195,12 +195,11 @@ export class opkService {
             this.generateSigData(userHeader, payload)
         );
         const userSig = await this.arrayBufferTob64(userSigBuf);
-        console.log("user sig", userSig);
+
         const pkToken = userHeader + "." + opHeader + "." + payload + "." + opSig + "." + userSig;
 
         localStorage.setItem("opk_pktoken", pkToken);
-        console.log(payloadJSONString);
-        console.log(pkToken);
+        console.log("pktoken", pkToken);
         return pkToken;
     }
 
@@ -214,9 +213,7 @@ export class opkService {
         //uses kid to get PKo and verify OP signature
         //check nonce = sha3(cic from pkt header)
         //use cic stuff to verify pk signature
-        console.log("in verifypktoken");
         const [userHeader, opHeader, payload, opSig, userSig] = pkToken.split(".");
-        const opToken = opHeader + payload + opSig;
 
         const payloadJSON = this.b64ToJSON<{
             aud: string;
@@ -226,13 +223,9 @@ export class opkService {
         }>(payload);
         const cicJSON = this.b64ToJSON<cicJSON>(userHeader);
         const cicString = JSON.stringify(cicJSON);
-        console.log(cicJSON);
-        console.log(payloadJSON);
         //check client id, aud, iss
         if (!payloadJSON.aud.includes(AUTH_CONFIG.client_id)) return false;
-        console.log("passed aud");
         if (!(payloadJSON.iss === "https://oidc.mit.edu/")) return false;
-        console.log("passed iss");
 
         //verify OP signature
         //Fetch the OIDC server public key
@@ -240,9 +233,6 @@ export class opkService {
         console.log("fetched oidc pks");
         if ("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
             const firstKey = oidcPublicKeys.keys[0];
-            // const pemPublicKey = jwkToPem(firstKey);
-            // if (!jwt.verify(opToken, opPubKey)) return false;
-            console.log("opkey", firstKey);
             const opKey = await window.crypto.subtle.importKey(
                 "jwk",
                 firstKey,
@@ -250,53 +240,29 @@ export class opkService {
                 true,
                 ["verify"]
             );
-            console.log("imported opkey", opKey);
             const verIdToken = await window.crypto.subtle.verify(
                 openIDAlg,
                 opKey,
                 await this.b64ToArrayBuffer(opSig),
                 this.generateSigData(opHeader, payload)
             );
-            console.log("ver", verIdToken);
             if (!verIdToken) throw Error("invalid id token");
         } else {
             return false;
         }
-        //START FAKE CODE
-        // const opKeyJWK = {
-        //     e: "AQAB",
-        //     n: "pkkVnbFUJXn6Za9zOoJpmnlZFDocyOAKQFJli3PuYaMkCS1UI0BT2Mt0NkeFw84hiMhUvVEFpUPT4CytvVccNjSbCEBdm_TMCZj0hbISLtjO_CUi7NbyzINCw2KpXpxFFVt3sJmKidCREXy06mOrCS66KE2t8oxnPpEWbma-fXLH13i1YSJMOePJvx3piAQVy76Os9NV8dPlWf5wyjSP8OooSc_ZX6tq11IRfQPTKuGyNunLeWDHvY1rwsAtGO3iwcnthP3yMeAmhg69y-sBcWn5_GGRbFh1sEk18Yl6d7X5zqSQWB_9a-UaeAplCJmD3tUEWDu9e-1nDdmwK6sXtw",
-        //     kty: "RSA",
-        //     kid: "rsa1"
-        // } as JWK;
-        // console.log("opkey", opKeyJWK);
-        // const opKey = await window.crypto.subtle.importKey("jwk", opKeyJWK, openIDAlgImport, true, [
-        //     "verify"
-        // ]);
-        // console.log("imported opkey", opKey);
-        // const verIdToken = await window.crypto.subtle.verify(
-        //     openIDAlg,
-        //     opKey,
-        //     await this.b64ToArrayBuffer(opSig),
-        //     this.generateSigData(opHeader, payload)
-        // );
-        // console.log("ver", verIdToken);
-        // if (!verIdToken) throw Error("invalid id token");
-
-        //END FAKE CODE
 
         //check nonce = sha3(cic)
         const nonce = payloadJSON.nonce;
-        console.log("nonce", nonce);
-        console.log(this.hashHelper(Buffer.from(cicString, "utf8")).toString("base64"));
         if (!(this.hashHelper(Buffer.from(cicString, "utf8")).toString("base64") === nonce))
             return false;
-        console.log("checked nonce");
-        //unpack nonce & verify pk signature
-        const userPubKey = await this.importKey(cicJSON.upk, false);
-        console.log("loaded user pk", userPubKey);
+
         //check cic is well formed (has alg,rz,upk)
-        // if (!jwt.verify(userHeader + "." + payload + "." + userSig, userPubKey)) return false;
+        if (cicJSON.alg === undefined) return false;
+        if (cicJSON.rz === undefined) return false;
+        if (cicJSON.upk === undefined) return false;
+
+        //verify pk signature
+        const userPubKey = await this.importKey(cicJSON.upk, false);
         const ver = await window.crypto.subtle.verify(
             ecdsaParams,
             userPubKey,
