@@ -191,7 +191,6 @@ export class opkService {
         const pkToken = userHeader + "." + opHeader + "." + payload + "." + opSig + "." + userSig;
 
         localStorage.setItem("opk_pktoken", pkToken);
-        console.log("pktoken", pkToken);
         return pkToken;
     }
 
@@ -224,7 +223,6 @@ export class opkService {
         //verify OP signature
         //Fetch the OIDC server public key
         const oidcPublicKeys = (await axios.get<jwkResponse>(AUTH_CONFIG.public_key)).data;
-        console.log("fetched oidc pks");
         if ("keys" in oidcPublicKeys && Array.isArray(oidcPublicKeys.keys)) {
             const firstKey = oidcPublicKeys.keys[0];
             const opKey = await window.crypto.subtle.importKey(
@@ -263,23 +261,33 @@ export class opkService {
             await this.b64ToArrayBuffer(userSig),
             this.generateSigData(userHeader, payload)
         );
-        console.log("verifying pktoken", ver);
+        console.log("verified pktoken", ver);
         if (!ver) return false;
         return true;
     }
 
+    /**
+     *
+     * @returns pkToken of user
+     */
+    public static getPKToken(): string {
+        const pkToken = localStorage.getItem("opk_pktoken") || "";
+        return pkToken;
+    }
+
+    /**
+     *
+     * @param message message to sign
+     * @returns OSM of message
+     */
     public static async generateOSM(message: string): Promise<string> {
-        console.log("in genOsm");
+        console.log("Generating OSM");
         const cic = JSON.parse(localStorage.getItem("opk_cic") || "");
         const pkToken = localStorage.getItem("opk_pktoken") || "";
         const privateKey = await this.importKey(
             localStorage.getItem("opk_private_key") || "",
             true
         );
-        console.log("cic", cic);
-        console.log("pktoken", pkToken);
-        console.log("private key", privateKey);
-
         const header: any = {
             alg: cic.alg,
             kid: this.hashHelper(Buffer.from(pkToken, "utf8")).toString("base64"),
@@ -288,8 +296,7 @@ export class opkService {
         const headerJSON = header as JSON;
         const payloadB64 = Buffer.from(message).toString("base64");
         const headerB64 = this.JSONtob64(headerJSON);
-        // const osm = jwt.sign(message, privateKey, { header: header });
-        // const osm = await new jose.SignJWT(message).setProtectedHeader({ header }).sign(privateKey);
+
         const sigData = this.generateSigData(headerB64, payloadB64);
         const sig = await window.crypto.subtle.sign(ecdsaParams, privateKey, sigData);
         console.log("SIGNATURE", sig);
@@ -297,34 +304,36 @@ export class opkService {
         return osm;
     }
 
+    /**
+     *
+     * @param osm OSM to verify
+     * @param pkToken pkToken to verify with
+     * @returns true if verification passes
+     */
     public static async verifyOSM(osm: string, pkToken: string): Promise<boolean> {
-        console.log("in verOSM");
         const [osmHeader, payload, osmSig] = osm.split(".");
-        console.log(osmHeader);
         const osmHeaderJSON = this.b64ToJSON<osmHeaderJSON>(osmHeader);
-        console.log(osmHeaderJSON);
         const cicJSON = this.b64ToJSON(pkToken.split(".")[0]) as cicJSON;
-        console.log(cicJSON);
+
         //challenge: check typ & alg, kid commits to the pkt,
         if (!(osmHeaderJSON.typ === "osm")) return false;
         if (!(osmHeaderJSON.alg === cicJSON.alg)) return false;
         if (!(osmHeaderJSON.kid === this.hashHelper(Buffer.from(pkToken)).toString("base64")))
             return false;
+
         //challenge response:
-        console.log("about to check pktoken");
-        this.verifyPKToken(pkToken);
+        if (!this.verifyPKToken(pkToken)) return false;
+
         //verify: check signature on osm verifies under upk in pkt
         const userPubKey = await this.importKey(cicJSON.upk, false);
-        console.log("loaded upk");
-        // if (!jwt.verify(osm, userPubKey)) return false;
         const ver = await window.crypto.subtle.verify(
             ecdsaParams,
             userPubKey,
             await this.b64ToArrayBuffer(osmSig),
             this.generateSigData(osmHeader, payload)
         );
-        console.log(ver);
-        if (!ver) throw Error("invalid signature on OSM");
+        console.log("Verified OSM", ver);
+        if (!ver) return false;
         return true;
     }
 }
