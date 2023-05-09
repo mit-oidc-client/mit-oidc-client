@@ -1,12 +1,10 @@
-import { Request, Response, response } from "express";
+import { Request, Response } from "express";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import jwkToPem from "jwk-to-pem";
 import { AUTH_CONFIG } from "./authConfig";
 import { eqSet } from "./authHelper";
 import { jwkResponse, loginResponse, oidcToken, userInfoResponse, idToken } from "./authType";
-import { createHash } from "crypto";
-
 /**
  * Handles the login procedure given an OpenID auth code (which may or may not be valid)
  */

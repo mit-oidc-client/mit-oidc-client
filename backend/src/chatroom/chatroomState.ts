@@ -1,6 +1,6 @@
-// Data structure that stores short history of messages while server is running
+import { DisplayedMessageType, MessageType } from "./chatroomType";
 
-import { DisplayedMessageType, MessageType } from "./types";
+// Data structure that stores short history of messages while server is running
 
 let messages: DisplayedMessageType[] = [];
 let id_onServer = 0;

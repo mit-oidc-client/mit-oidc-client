@@ -1,11 +1,10 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
-
-import { handleLogin } from "./auth";
+import { handleLogin } from "./auth/auth";
 
 /****************************************************************************************/
-import { addMessage, getMessages } from "./chatroom/ChatroomState";
-import { DisplayedMessageType, MessageType } from "./chatroom/types";
+import { addMessage, getMessages } from "./chatroom/chatroomState";
+import { DisplayedMessageType, MessageType } from "./chatroom/chatroomType";
 /****************************************************************************************/
 
 // Load in environment variables
