@@ -53,6 +53,17 @@ async function redirectToLogin() {
 
     const destinationURL = AUTH_CONFIG.auth_endpoint + "?" + params.toString();
     window.location.replace(destinationURL);
+
+    //fake stuff
+    // console.log("RUNNING FAKE CODE IN AUTH");
+    // const id_token =
+    //     "eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE2ODM2NTU0NDcsInN1YiI6ImVlY2I1MWZhN2ZlMmQwOTNkNGY0MjRkMzU5YTA5YWM4Iiwibm9uY2UiOiIwb3pXc1hxOGNDUlhSSnpYR05ad2Z2ZFZXS05obzJwMHdcL2xsdnNQU2xBcz0iLCJhdWQiOlsiMmNmYzk5M2UtNDVkOC00NWUzLWFhYTYtNzhlZjg3MTdjYjk2Il0sImlzcyI6Imh0dHBzOlwvXC9vaWRjLm1pdC5lZHVcLyIsImlhdCI6MTY4MzY1NDg0Nywia2lkIjoicnNhMSJ9.WCMDNM2PN6Lb6xrziC00Iq_Pki7nB1Q1BKdbDqRjxL1_BFNmvVZ4T9BFT7NW4bu9QMeJ1IDS04uPHStgOBqwr82qyQmJ4OmI5ABkmmrHNJwCkuBfBiPJQTctjWT0QEUuSwRHhFOASIJ1J9-LIzcpwgtR_SRi5N__d3oAQ_r0BIGntIO4FmFDQr2-rw21HVoEvwo_eoEnQa9zFquxl9oFzuA9H1MRgVYA_FvIRbsw4WELRRXMtXfjfEf1qMX0hHuV4K4kPqmjd2bchdLKr5YDU0xH0NLD2nmWuBGaCg9TCo-6drF1jcsA-qbElIDxmVjhOpvzEVBdIs6arLjuINu-sQ";
+    // const pktoken = await opkService.generatePKToken(id_token);
+    // opkService.verifyPKToken(pktoken);
+    // const message = "hello world";
+    // const osm = await opkService.generateOSM(message);
+    // console.log(osm);
+    // await opkService.verifyOSM(osm, pktoken);
 }
 
 function OidcResponseHandler() {
@@ -104,7 +115,10 @@ function OidcResponseHandler() {
                 setLoginMsg("Login successful!");
                 localStorage.setItem(AUTH_CONFIG.idtoken_localstorage_name, data.id_token); //Save id_token to local storage
 
-                opkService.generatePKToken(data.id_token);
+                const pktoken = await opkService.generatePKToken(data.id_token);
+                console.log("PKTOKEN GENERATED", pktoken);
+                const ver = await opkService.verifyPKToken(pktoken);
+                console.log("PKTOKEN VERIFIED", ver);
 
                 const from = location.state?.from?.pathname || "/";
                 auth.signin(data.email, () => {
