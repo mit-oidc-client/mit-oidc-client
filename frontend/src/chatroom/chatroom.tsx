@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
-import { DisplayedMessageType, MessageType } from "./types";
-import { useAuth } from "../authProvider";
+import { DisplayedMessageType, MessageType } from "./chatroomType";
+import { useAuth } from "../auth/authProvider";
 import { FaCheckCircle, FaExclamation, FaSpinner } from "react-icons/fa";
 import { opkService } from "../pktoken";
 

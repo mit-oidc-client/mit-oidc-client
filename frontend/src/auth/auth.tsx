@@ -4,7 +4,7 @@ import Cookies from "universal-cookie";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "./authProvider";
-import { opkService } from "./pktoken";
+import { opkService } from "../pktoken";
 
 /**
  * Expected response for server to return to user's browser after querying /login endpoint

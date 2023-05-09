@@ -1,5 +1,5 @@
-import { AUTH_CONFIG } from "./authConfig";
-import { generateRandomBytes, toHexString } from "./authHelper";
+import { AUTH_CONFIG } from "./auth/authConfig";
+import { generateRandomBytes, toHexString } from "./auth/authHelper";
 import { SHA3 } from "sha3";
 import axios from "axios";
 import * as jwkpem from "jwk-to-pem";

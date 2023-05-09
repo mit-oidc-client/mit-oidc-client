@@ -5,11 +5,11 @@ import {
   Link,
   Outlet,
 } from "react-router-dom";
-import { OidcResponseHandler, redirectToLogin } from "./auth";
-import { AuthProvider, RequireAuth, AuthStatus } from "./authProvider";
+import { OidcResponseHandler, redirectToLogin } from "./auth/auth";
+import { AuthProvider, RequireAuth, AuthStatus } from "./auth/authProvider";
 
 /****************************************************************************************/
-import ChatRoom from "./chatroom/Chatroom";
+import ChatRoom from "./chatroom/chatroom";
 /****************************************************************************************/
 
 export default function App() {
