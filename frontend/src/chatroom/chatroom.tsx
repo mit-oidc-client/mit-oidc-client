@@ -104,8 +104,12 @@ const ChatRoom = () => {
         messages[id].verifyStatus = "loading";
         setVerifying((prevState) => !prevState);
         setTimeout(async () => {
-            const ver = await opkService.verifyOSM(messages[id].sig, messages[id].pkToken);
-            messages[id].verifyStatus = ver ? "verified" : "failed";
+            try {
+                const ver = await opkService.verifyOSM(messages[id].sig, messages[id].pkToken);
+                messages[id].verifyStatus = ver ? "verified" : "failed";
+            } catch {
+                messages[id].verifyStatus = "failed";
+            }
             setVerifying((prevState) => !prevState);
         }, 1000);
     };
