@@ -1,4 +1,6 @@
-## Setting up the project
+## Resources Use for Setting Up This Project
+
+
 
 ## MIT OpenID Connect Implementation
 
@@ -63,7 +65,7 @@
 2. Axios authorization header: <https://flaviocopes.com/axios-send-authorization-header/>
 3. Javascript fetch API: <https://www.javascripttutorial.net/javascript-fetch-api/>
 
-# React
+# React (Functional Components, Routers, Query Parameters)
 
 1. In-depth guide to React functional components: <https://www.knowledgehut.com/blog/web-development/react-functional-components>
 2. Run useEffect() only once: <https://css-tricks.com/run-useeffect-only-once/>
@@ -78,18 +80,19 @@
 4. Setting up certbot: <https://certbot.eff.org/instructions?ws=nginx&os=ubuntubionic>
 5. Configuring nginx with certbot: <https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04>
 
-## Hosting
+## Hosting 
 
-1. Change Scripts VM version to Fedora 30: <https://scripts.mit.edu/upgrade/>
-2. Install Python 3.10: <https://computingforgeeks.com/how-to-install-python-on-ubuntu-linux-system/>
-3. Install Node v16.19.0: <https://tecadmin.net/how-to-install-nvm-on-ubuntu-18-04/>
-4. Install pip: <https://stackoverflow.com/questions/6587507/how-to-install-pip-with-python-3>
-5. Serve React app using Nginx on VM: <https://betterprogramming.pub/deploy-react-node-js-application-in-a-virtual-machine-5b910d6f3aac>
-6. Allow Nginx user to execute folder in a non-default location: <https://cwiki.apache.org/confluence/display/httpd/13permissiondenied>
-7. Deploy with Nginx in React + Express project: <https://javascript.plainenglish.io/how-to-deploy-a-react-app-with-expressjs-and-nginx-29abeef08c67>
-8. Setting up OpenSSH server
+1. Getting a VM via XVM service: <https://xvm.mit.edu/>
+2. Install Node v16.19.0: <https://tecadmin.net/how-to-install-nvm-on-ubuntu-18-04/>
+3. Setting up Nginx
+   1. Serve React app using Nginx on VM: <https://betterprogramming.pub/deploy-react-node-js-application-in-a-virtual-machine-5b910d6f3aac>
+   2. Allow Nginx user to execute folder in a non-default location: <https://cwiki.apache.org/confluence/display/httpd/13permissiondenied>
+   3. Deploy with Nginx in React + Express project: <https://javascript.plainenglish.io/how-to-deploy-a-react-app-with-expressjs-and-nginx-29abeef08c67>
+4. Setting up OpenSSH server
    1. <https://ubuntu.com/server/docs/service-openssh>
    2. <https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server>
    3. <https://www.cyberciti.biz/faq/ubuntu-18-04-setup-ssh-public-key-authentication/>
    4. <https://www.ionos.com/help/server-cloud-infrastructure/server-administration/creating-a-sudo-enabled-user/>
-9. Serving Express.js server using pm2 (don't serve against Node directly!): <https://www.freecodecamp.org/news/you-should-never-ever-run-directly-against-node-js-in-production-maybe-7fdfaed51ec6/>
+5. Serving Express.js server using pm2 (don't serve against Node directly!)
+   1. <https://www.freecodecamp.org/news/you-should-never-ever-run-directly-against-node-js-in-production-maybe-7fdfaed51ec6/>
+   2. <https://pm2.keymetrics.io/docs/usage/quick-start/>

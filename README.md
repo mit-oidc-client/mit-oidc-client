@@ -24,17 +24,21 @@ While supporting [documentation](https://ist.mit.edu/oidc) exists to do user aut
 
 As an extension to providing authentication via MIT OpenID Connect (OIDC) service, we supply the client with a [PK Token](https://eprint.iacr.org/2023/296) generated from the client's ID Token. The PK Token is a committment of a public/private key pair to the ID Token, which augments the method of authentication from Bearer's Authentication to Proof-of-Possession. This protocol is built upon and is fully compatible with the OpenID Connect service. We will show a possible use case of PK Tokens with an implementation of an authenticated chatroom.
 
-### Example Usage: Authenticated Chatroom
+### Example Application: Authenticated Chatroom
 
-Note: to access the chatroom, you must login with your MIT credientials through the MIT OpenID Connect service. We decided to implement a chatroom to display how PK Token can be use to verify that pieces of data come from a trusted user, which fundamentally is what authentication is about. In our case, these pieces of data is a text message and the trusted user is an identity holding an MIT crediential. But later, we will discuss other ideas made possible with PK Tokens. In the authenticated chatroom, a user may submit a message along with a signture of the message using their signing key. Any other user may verify any messages at any time using the respective public key. The verification may either accept (green check) or reject (red exclamation).
+**Note:** To access the chatroom, you must login with your MIT credentials through the MIT OpenID Connect service. 
 
-### Other implementation ideas
+As part of the OpenPubKey extension, We decided to implement a chatroom to display how PK Token can be use to verify that pieces of data come from a trusted user, which fundamentally is what authentication is about. In our case, these pieces of data is a text message and the trusted user is an identity holding an MIT crediential. 
+
+In the authenticated chatroom, a user may submit a message along with a signture of the message using their signing key. Any other user may verify any messages at any time using the respective public key. The verification may either accept (green check) or reject (red exclamation).
+
+### Other possible OpenPubKey usage:
 
 -   **Committing bets**: Two friends make a bet on something, and they want to prove they made it with their commitment. Say later one person tries to say they never made this bet, but because they signed their message (which is stored on the server), we have irrefutable proof that they did make the bet.
 
--  ** Code signing:** Have a trusted verifier to have mapping of ID tokens to public keys, and then whenever a user signs a commit they made, they can send it to the verifier and have it put into an append-only log.
+- **Code signing:** Have a trusted verifier to have mapping of ID tokens to public keys, and then whenever a user signs a commit they made, they can send it to the verifier and have it put into an append-only log.
 
--   **SSH:** SSH keys are difficult to manage. Instead, have users sign in through Google (or some other OpenID provider), and then have a PK Token that can act as their public SSH key.
+- **SSH:** SSH keys are difficult to manage. Instead, have users sign in through Google (or some other OpenID provider), and then have a PK Token that can act as their public SSH key.
 
 ## Security Design
 
@@ -44,12 +48,18 @@ To ensure the security of our overall client framework, we made the following de
     -   HTTPS/SSL encryption ensures all communication between the user and the web service is protected. This is a hard requirement for safe-handling of OAuth ID and access tokens
     -   **Note:** Self-signed certificates should be used for development work **only**. We recommend using Let's Encrypt or other reputable certificate authority when deploying to production. If you're using platforms like Heroku or Render.com for hosting, they often will have their own SSL certificates management services. See [this](https://devcenter.heroku.com/articles/automated-certificate-management) and [this](https://render.com/docs/tls).
 -   Dependency on secure cryptographic libraries
-    -   When generating randomness or relying on cryptographic primitives like hash functions, we use secure libraries like built in browser's `Crypto.getRandomValues()` and `Crypto.subtle.digest()` function set to SHA-256 hash.
--   Utilization of nonce in authorization request
-    -   TODO
--   Securing cookies using Secure and HTTPonly flags
-    -   TODO
+    -   When generating randomness or relying on cryptographic primitives like hash functions, we use secure libraries like built in browser's `Crypto.getRandomValues()` and `Crypto.subtle.digest()` functions, along with official JWT libraries. This ensures that we are generating secure randomness in our application and depends only on secure primitive implementation for signing and verification of data.
+-   Utilization of state and nonce in authorization request
+    - As part of the [OpenID Connect Basic Implementer's Guide 1.0](https://openid.net/specs/openid-connect-basic-1_0.html), it is optional, but recommended to implement the state and nonce parameter in the authentication request flow. The state parameter is used to mitigate against Cross-Site Request Forgery (CSRF, XSRF) attacks, and the nonce parameter mitigate replay attacks.
+    - For our application, we decided to implement both of these variables, storing them in as a variable in localStorage and a cookie, respectively. Both contain high levels of entropy (2^128) for security
+    - **Note:** In the optional OpenPubKey flow, the nonce is replaced by a different format than a random string. See the [original paper](https://eprint.iacr.org/2023/296.pdf) for arguments about its security.
+-   Securing handling of cookies
+    -   Whenever cookies are used in our implementation, namely the state parameter, we secure it by setting security parameters including:
+        -   `path`: Restrict sending the cookie to a specific API endpoint on the backend only
+        -   `sameSite`: Disallow sending cookie on cross-site requests
+        -   `secure`: Force cookie to be sent over secure connections (HTTPS)
 -   Safe type checking using Typescript
+    -   At MIT, especially in course 6.031, we promote the user of Typescript over Javascript because it allows for static typing, which helps code be more readable, bug-safe, and more easily maintainable. It's also the language of choice for most MIT students creating web services.
 
 ## Developer Information
 
@@ -65,7 +75,9 @@ In the root directory, run:
 
 * `npm install` to install dependencies
 * `npm run build` to create build production 
-* `npm run start` to run frontend code locally
+* `npm run start` to run code locally (for development purposes)
+
+When deploying to production, you should build your code using `npm run build` for both the frontend and backend so that it's optimized for performance. You should then use a web server like Nginx to serve your static frontend files and a process manager for Node like `pm2` to run your backend server (don't run against Node directly!).
 
 ### Certificates
 
