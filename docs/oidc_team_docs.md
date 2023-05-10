@@ -28,9 +28,12 @@ Quick command to copy the build from your local filesystem to the server:
 
 Since the OpenSSH server is set to only use pubkey authentication, this command will not require you to input a password.
 
-The frontend files are served statically with Nginx, so you don't have to run anything. For the backend server, however, you will need to run it with `node build/index.js` (assuming you are cd'ed in the `backend/` folder). Note that this server will only run while your terminal is alive, unless you add the background `&` sign to the end of the command.
+The frontend files are served statically with Nginx, so you don't have to run anything. For the backend server, when doing testing, you will need to run it with `node build/index.js` (assuming you are cd'ed in the `backend/` folder). Note that this server will only run while your terminal is alive, unless you add the background `&` sign to the end of the command. 
+
+When you are confident in your implementation and wants to run the backend in production mode, you should run it with `pm2 start oidc` (**Note:** We already created the oidc process by running `pm2 start build/index.js --name oidc` the first time we ran pm2). Do `pm2 status` to get status about CPU and Memory usage on running pm2 processes. To stop the oidc process, do `pm2 stop oidc`.
 
 If you get an error about connection refused or IP address in use, do `ps` to list running processes, and then `kill [process_num]` to kill a running process, or `kill -9 [process_num]` to force kill it.
+
 
 ## Final Deployment Tasks
 

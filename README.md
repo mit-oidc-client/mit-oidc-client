@@ -51,8 +51,7 @@ To ensure the security of our overall client framework, we made the following de
     -   When generating randomness or relying on cryptographic primitives like hash functions, we use secure libraries like built in browser's `Crypto.getRandomValues()` and `Crypto.subtle.digest()` functions, along with official JWT libraries. This ensures that we are generating secure randomness in our application and depends only on secure primitive implementation for signing and verification of data.
 -   Utilization of state and nonce in authorization request
     - As part of the [OpenID Connect Basic Implementer's Guide 1.0](https://openid.net/specs/openid-connect-basic-1_0.html), it is optional, but recommended to implement the state and nonce parameter in the authentication request flow. The state parameter is used to mitigate against Cross-Site Request Forgery (CSRF, XSRF) attacks, and the nonce parameter mitigate replay attacks.
-    - For our application, we decided to implement both of these variables, storing them in as a variable in localStorage and a cookie, respectively. Both contain high levels of entropy (2^128) for security
-    - **Note:** In the optional OpenPubKey flow, the nonce is replaced by a different format than a random string. See the [original paper](https://eprint.iacr.org/2023/296.pdf) for arguments about its security.
+    - For our application, we decided to implement both of these variables, storing them in as a variable in localStorage and a cookie, respectively. Both contain high levels of entropy (2^128) for security. **Note:** In the optional OpenPubKey flow, the nonce is replaced by a different format than a random string. See the [original paper](https://eprint.iacr.org/2023/296.pdf) for arguments about its security.
 -   Securing handling of cookies
     -   Whenever cookies are used in our implementation, namely the state parameter, we secure it by setting security parameters including:
         -   `path`: Restrict sending the cookie to a specific API endpoint on the backend only
@@ -78,6 +77,21 @@ In the root directory, run:
 * `npm run start` to run code locally (for development purposes)
 
 When deploying to production, you should build your code using `npm run build` for both the frontend and backend so that it's optimized for performance. You should then use a web server like Nginx to serve your static frontend files and a process manager for Node like `pm2` to run your backend server (don't run against Node directly!).
+### OIDC Registration
+
+One of the advantages of OpenID Connect protocol is that third-party applications like ours can register to use the OIDC server dynamically without needing to be pre-approved. For the MIT OIDC service, navigate to <https://oidc.mit.edu/> and log in to your Touchstone account. Then on the left hand side, click on `Self-service client registration` -> `Register a new client`. 
+
+You will need to supply fields for: Client name, redirect URIs, application type (choose `web` if you are using this template), and contacts. For example, in our live server, we had:
+
+- Client name: `unofficial-oidc-client`
+- Redirect URIs: `https://unofficial-oidc-client.xvm.mit.edu/oidc-response`
+- Home page: `https://github.com/mit-oidc-client/mit-oidc-client`
+- Application Type: `web`
+- Contacts: `unofficial-oidc-client@mit.edu`
+
+Once you click save, it will generate the client ID + secret, as well as other fields, for your application. **Be sure to save this information somewhere safe!** To work with our template, you will need to navigate to the `JSON` tab and save the json there as a `secrets.json` file stored in the `cert` folder of the github repo. This JSON is read by the Express backend to access the `client_secret` parameter, which is needed as part of the authorization code flow.
+
+Also, in the future, when you want to edit your application's info again, you will need the `client_id` and `registration_access_token` to get access. Otherwise, your information is essentially lost and you will need to register again (it's possible to re-register for the same domain).
 
 ### Certificates
 
@@ -86,18 +100,11 @@ To secure the frontend and backend, you will need to use SSL certificates. For p
 For development work ONLY, you can generate self-signed certificates. See the following [guide](https://www.makeuseof.com/create-react-app-ssl-https/) to use `mkcert` utility. The certificates should be saved to the [/cert](/cert/) folder, with SSL secret key file named `key.pem` and public certificate file named `cert.pem`.
 
 On our live example, we used Let's Encrypt Certbot tool configured for Nginx for the acquiring and the auto-renewal of TLS certificates.
-### OIDC Registration
-
-TODO: Fill in
-
 ### Hosting
 
-Our client implementation does not require a specific hosting solution, and indeed you can deploy it on platforms like Heroku and Render.com or MIT-specific hosting services like [XVM](XVM.mit.edu) offered by the [Student Information Processing Board (SIPB)](https://sipb.mit.edu/). Indeed, Heroku and Render.com offers fully managed TLS certificates to allow for HTTPS encryption.
+Our client implementation does not require a specific hosting solution, and indeed you can deploy it on platforms like Heroku and Render.com, or MIT-specific hosting services like [XVM](XVM.mit.edu) offered by the [Student Information Processing Board (SIPB)](https://sipb.mit.edu/). Indeed, Heroku and Render.com offers fully managed TLS certificates to allow for HTTPS encryption.
 
-For our purposes, we hosted our example website on an Ubuntu 18.02 VM running on SIPB's XVM service. Both the frontend and backend are run and managed by Nginx.
-
-node build/index.js
-
+For our purposes, we hosted our example website on an Ubuntu 18.02 VM running on SIPB's XVM service. We use Nginx as our web server and reverse proxy with TLS enabled, and `pm2` as the process manager for the Express backend.
 
 # Questions/ Feature Requests?
 
