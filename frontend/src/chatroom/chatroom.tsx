@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 import { DisplayedMessageType, MessageType } from "./chatroomType";
 import { useAuth } from "../auth/authProvider";
@@ -70,7 +70,6 @@ const ChatRoom = () => {
     const handleNewMessage = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        // TODO: fill in arguments
         sendMessage(auth.user, newMessage, await signMessage(newMessage), getPKToken()).then(() => {
             setNewMessage("");
             fetchMessages(localId);
@@ -131,7 +130,6 @@ const ChatRoom = () => {
                         </strong>
                         <span style={{ marginRight: "10px" }}>{message.text}</span>
                         {renderVerifyStatus(message.id, message.verifyStatus)}
-                        {/* <span>{message.sig}</span> */}
                     </div>
                 ))}
             </div>
