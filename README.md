@@ -4,15 +4,17 @@ Unofficial client template for MIT OpenID Connect (OIDC) service
 
 Live example can be found at: <https://unofficial-oidc-client.xvm.mit.edu>
 
+A short presentation summarizing our project can be found [here](https://docs.google.com/presentation/d/1_L9uNqXT8jQCf2XUvjioHke7KBq4loDDfeWcYvIzTNI/edit?usp=sharing).
+
 ## Goal
 
 We want to provide an easy-to-use template for MIT students looking to develop secure web services that supports MIT Touchstone authentication.
 
-While supporting [documentation](https://ist.mit.edu/oidc) exists to do user authentication using [MIT OpenID Connect](https://oidc.mit.edu/) service, we feel there is a knowledge gap and technical barrier that prevents its widespread adoption. In this project, we hope to provide a simple and secure client implementation that MIT student developers can adopt to quickly get authentication in their web services.
+While [supporting documentation](https://ist.mit.edu/oidc) exists to do user authentication using [MIT OpenID Connect](https://oidc.mit.edu/) service, we feel there is a knowledge gap and technical barrier that prevents its widespread adoption. In this project, we hope to provide a simple and secure client implementation that MIT student developers can adopt to quickly get authentication in their web services.
 
 ## What is included? 
 
-- Basic template for a **secure web service** containing front-end (React.JS) and API back-end (Express.js)
+- Basic template for a **secure web service** containing front-end (React.js) and API back-end (Express.js)
 - Features for **integration with Touchstone authentication** via MIT OpenID Connect (OIDC) service
   - Includes code for securely requesting, parsing, and validating OAuth tokens from MIT OIDC
   - Provides logic for how to use those tokens to request information about users
@@ -20,7 +22,7 @@ While supporting [documentation](https://ist.mit.edu/oidc) exists to do user aut
 - **Implementation of OpenPubKey**, which is a client-side extension that extends the OIDC protcol and adds to its security by allowing for secure signing and verification of messages.
   - As an example usage, we provide a **simple chatroom service** (in /frontend/src/chatroom and /backend/src/chatroom) that uses this feature. Users can verify the signature of messages to check if they actually came from the declared user.
 
-## Background 
+## Background
 
 ### What is OpenID Connect?
 
@@ -133,7 +135,7 @@ Our client implementation does not require a specific hosting solution, and inde
 
 For our purposes, we hosted our example website on an Ubuntu 18.02 VM running on SIPB's XVM service. We use Nginx as our web server and reverse proxy with TLS enabled, and `pm2` as the process manager for the Express backend.
 
-### How our code works (Optional Reading)
+### Optional Reading: How our code works 
 
 In this section, we'll break down how our frontend and backend work together to provide the OIDC client implementation. Note that this does not cover the OpenPubKey-specific details.
 
@@ -216,14 +218,28 @@ Following that step, the backend server receives back an JSON object containing 
 Once we can be sure the ID token is valid, we proceed with querying the `/userinfo` endpoint on the OIDC server for user information. Since we're solely interested in determining who the user that just logged in is, we decided to query for the `email` field. This action is done by the `getUserInfo()` function, which simply returns the user's email (or an error message if the lookup fails).
 
 The backend then bundles the ID token together with the user email, and sends it back to the user's browser.
-#### Remarks about using MIT Email as a unique user identifier
+### Remarks about using MIT email as a unique user identifier
 
 It should be noted that in the [IS&T documentation about OIDC](https://kb.mit.edu/confluence/display/istcontrib/Logging+in+Users+to+your+application+using+OpenID+Connect), they remark neither the the `email` (MIT email) or `preferred_username` (MIT kerb) are sufficient to be used as a globally unique identifier for the current user across all OIDC servers because they can change over time. However, we believe it's impractical to use the recommended pair of `iss/sub`, because while it is guaranteed to be unique, the web application still needs a way to be able to convert `iss/sub` into an email or some other MIT identifying string.
 
 While in theory it's possible to do by storing an `access_token` and `refresh_token` with the `iss/sub` pair and then querying them for the user's email or kerb whenever we need it, it adds additional complexity to the authentication system and requires an identity storage, which is something that we strongly want to avoid or at least keep to a minimum. We can also see issues with student developers then adding some form of caching methods to speed up identity lookups, where they store the `iss/sub` to `email` mapping in a local database, which then opens up additional attack surfaces and potential data leakage. 
 
 Indeed, we are considering switching the use of the `email`  to `preferred_username` as the main identifying field, since a user's kerberos is much more unlikely to change over the course of them being a student or MIT community member compared to their email (see [Name Changes at MIT](http://kb.mit.edu/confluence/display/mitcontrib/Name+Changes+At+MIT)). 
+
 ### Future Works
+
+While we were able to achieve many of the original goals set out for this project, we recognize that there are aspects which could be further improved and developed on for our client framework. 
+ 
+1. **Security analysis of our code:** 
+    * We recognize that code is rarely bug-free and secure the first time it is written. Before publishing our code to the MIT community, we would like to have it reviewed by other students, and members of the the MIT OIDC team, for potential bugs and security issues. 
+2. **Advertisement to students**: 
+    * A big motivation for us in creating this project is that we want for MIT students to actually be able to use this code when creating their web services. As a result, we plan to advertise our project through dormspam and get in contact with professors + TA's teaching web development class like web.lab to see they can mention it to their students. We also want to get feedback on how we can best enable the  adoption of our authentication framework into existing services (rather than just new ones).
+3. **Communicate server timeout issues to MIT OIDC**
+    * As part of our initial survey and design work, we discover that one of the pain points reported by students when using the OIDC authentication service is that the login endpoint tends to have long delays at random times of the day (to the point of causing timeouts). We also encountered this issue multiple times in the development of this project. As a result, we plan to follow up with the MITRE team who created the MIT OIDC service service to get their help on resolving this issue. 
+4. **Add session management for users**
+    * One quality-of-life feature we would like to add to our OIDC client is the ability to create and manage sessions for logged in users. Currently, our system provides a way of authenticating users to the application, but it doesn't offer a generic way of tracking/authenticating actions done by that user after a successful login, outside of the OpenPubKey OSM messages. We would like to add a secure session management scheme, likely using libraries like `express-session` or `cookie-session`.
+5. **Add MFA cosigners and better expiry to OpenPubKey extension**
+    * TODO
 
 ## Questions/ Feature Requests?
 
