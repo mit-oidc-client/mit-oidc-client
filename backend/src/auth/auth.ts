@@ -9,7 +9,6 @@ import { jwkResponse, loginResponse, oidcToken, userInfoResponse, idToken } from
  * Handles the login procedure given an OpenID auth code (which may or may not be valid)
  */
 async function handleLogin(req: Request, res: Response) {
-    res.clearCookie(AUTH_CONFIG.nonce_cookie_name, AUTH_CONFIG.nonce_cookie_options);
     const code = req.body["code"];
     const userResponse: loginResponse = {
         //Response we will send back to user/browser
@@ -42,6 +41,13 @@ async function handleLogin(req: Request, res: Response) {
         clearNonceCookie();
         res.status(200).json(userResponse);
     }
+
+    //Check if code was provided
+    if(code === undefined) {
+        respondWithError("Input Error: No auth code was provided in request");
+        return;
+    }
+    
     //Check if nonce cookie was provided
     if (!(AUTH_CONFIG.nonce_cookie_name in req.cookies)) {
         respondWithError("Input Error: No nonce cookie was provided in request");
