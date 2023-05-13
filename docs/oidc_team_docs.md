@@ -37,14 +37,9 @@ If you get an error about connection refused or IP address in use, do `ps` to li
 
 ## Final Deployment Tasks
 
--   Add resources I use to make frontend and backend work
 -   Switch backend server to use Let's Encrypt certs instead of self-signed certs (these expire in 2 years)
--   Use pm2 to serve Express server for production mode
+    -   Note: This is the cert that is used to talk between the Nginx proxy and the Express backend server, which happens all internally on the XVM. Thus it's acceptable to use self-signed certs for now.
 -   Reference documentation from <https://github.com/robertvunabandi/guide-on-mitopenid> project
--   Remove extraneous console.log statements
--   Make sure `auth` and `sampleImplementation` are in their own modules
-    -   Decouple OpenPubKey stuff from main application stuff
+-   Remove extraneous console.log statements for OpenPubKey parts
 -   Turn on prevent implicit any Typescript check in backend + fix issues (if time permits)
--   Make sure I do stuff with the nonce token (send from client side to backend) to verify ID token
--   Add support for working with access tokens
 -   Fix camel case in AuthConfig (frontend and backend)
