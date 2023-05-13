@@ -18,12 +18,15 @@ While supporting [documentation](https://ist.mit.edu/oidc) exists to do user aut
   - Provides logic for how to use those tokens to request information about users
 - [Support developer documentation](#developer-information) for how to use our template and how OpenID Connect works
 - Implementation of OpenPubKey, which is a client-side extension that extends the OIDC protcol and adds to its security by allowing for secure signing and verification of messages.
-  - As an example usage, we provide a simple chatroom service that uses this feature. Users can verify the signature of messages to check if they actually came from the declared user.
+  - As an example usage, we provide a simple chatroom service (in /frontend/src/chatroom and /backend/src/chatroom) that uses this feature. Users can verify the signature of messages to check if they actually came from the declared user.
 
-## What is OpenID Connect?
+## Background 
 
+### What is OpenID Connect?
 
-## Extension: OpenPubKey
+OpenID Connect is a protocal that builds on top of OAuth2.0. It is important to note the difference between the two. OAuth2.0 provides *authorization*, or permission to access certain resources from one application to another on behalf of the resource owner. On the other hand, OIDC provides *authentication*, or identity of the resource owner. An illustrative guide can be found [here](https://developer.okta.com/blog/2019/10/21/illustrated-guide-to-oauth-and-oidc). The OIDC flow returns an ID Token, which is a JWT that can be decoded to extract authenticated information such as name and email of the resource owner. 
+
+### Extension: OpenPubKey
 
 As an extension to providing authentication via MIT OpenID Connect (OIDC) service, we supply the client with a [PK Token](https://eprint.iacr.org/2023/296) generated from the client's ID Token. The PK Token is a committment of a public/private key pair to the ID Token, which augments the method of authentication from Bearer's Authentication to Proof-of-Possession. This protocol is built upon and is fully compatible with the OpenID Connect service. We will show a possible use case of PK Tokens with an implementation of an authenticated chatroom.
 
@@ -31,9 +34,9 @@ As an extension to providing authentication via MIT OpenID Connect (OIDC) servic
 
 **Note:** To access the chatroom, you must login with your MIT credentials through the MIT OpenID Connect service. 
 
-As part of the OpenPubKey extension, We decided to implement a chatroom to display how PK Token can be use to verify that pieces of data come from a trusted user, which fundamentally is what authentication is about. In our case, these pieces of data is a text message and the trusted user is an identity holding an MIT crediential. 
+In the authenticated chatroom, we demonstrate how PK Tokens can be use to verify whether data is coming from a trusted user or not, which fundamentally is what authentication is about. In our case, these pieces of data takes the form of a text message and the trusted user is an identity holding an MIT crediential. 
 
-In the authenticated chatroom, a user may submit a message along with a signture of the message using their signing key. Any other user may verify any messages at any time using the respective public key. The verification may either accept (green check) or reject (red exclamation).
+Once logged in using an MIT crediential, the client may utilize methods from our `pktoken` module to generate a PK Token `opkService.getPKToken`, sign messages `opkService.generateOSM`, and verify messages `opkService.verifyOSM`. The user submits an OpenPubKey Signed Message (OSM) consisting of their message and a signture of their message using their PK Token. The authenticated chatroom is designed in a way to allow any users to verify any OSM at any time. All initial messages are unverified (grey check). To verify, click on the check and the verification may either accept (green check) or reject (red exclamation).
 
 ### Other possible OpenPubKey usage:
 
