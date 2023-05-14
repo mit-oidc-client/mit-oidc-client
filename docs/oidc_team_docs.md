@@ -39,7 +39,6 @@ If you get an error about connection refused or IP address in use, do `ps` to li
 
 -   Switch backend server to use Let's Encrypt certs instead of self-signed certs (these expire in 2 years)
     -   Note: This is the cert that is used to talk between the Nginx proxy and the Express backend server, which happens all internally on the XVM. Thus it's acceptable to use self-signed certs for now.
--   Reference documentation from <https://github.com/robertvunabandi/guide-on-mitopenid> project
 -   Remove extraneous console.log statements for OpenPubKey parts
 -   Turn on prevent implicit any Typescript check in backend + fix issues (if time permits)
 -   Fix camel case in AuthConfig (frontend and backend)

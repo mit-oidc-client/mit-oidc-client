@@ -1,7 +1,6 @@
 ## Resources Use for Setting Up This Project
 
 
-
 ## MIT OpenID Connect Implementation
 
 1. Main webpage - MIT OpenID Connect Pilot: <https://oidc.mit.edu/>

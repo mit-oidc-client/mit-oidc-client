@@ -6,6 +6,35 @@ Live example can be found at: <https://unofficial-oidc-client.xvm.mit.edu>
 
 A short presentation summarizing our project can be found [here](https://docs.google.com/presentation/d/1_L9uNqXT8jQCf2XUvjioHke7KBq4loDDfeWcYvIzTNI/edit?usp=sharing).
 
+## Table of Content
+
+- [mit-oidc-client](#mit-oidc-client)
+  - [Table of Content](#table-of-content)
+  - [Goal](#goal)
+  - [What is included?](#what-is-included)
+  - [Background](#background)
+    - [What is OpenID Connect?](#what-is-openid-connect)
+    - [Extension: OpenPubKey](#extension-openpubkey)
+    - [Example Application: Authenticated Chatroom](#example-application-authenticated-chatroom)
+      - [Other possible OpenPubKey usage](#other-possible-openpubkey-usage)
+  - [Related Works](#related-works)
+  - [Security Design](#security-design)
+    - [Security Discussion of Login System + Authenticated Actions](#security-discussion-of-login-system--authenticated-actions)
+  - [Developer Information](#developer-information)
+    - [Setup](#setup)
+    - [Running Code](#running-code)
+    - [OIDC registration + auth configs](#oidc-registration--auth-configs)
+    - [Certificates](#certificates)
+    - [Hosting](#hosting)
+    - [Optional Reading: How our code works](#optional-reading-how-our-code-works)
+      - [System Diagram](#system-diagram)
+      - [Frontend](#frontend)
+      - [Backend](#backend)
+    - [Remarks about using MIT email as a unique user identifier](#remarks-about-using-mit-email-as-a-unique-user-identifier)
+  - [Future Works](#future-works)
+  - [Questions/ Feature Requests?](#questions-feature-requests)
+
+
 ## Goal
 
 We want to provide an easy-to-use template for MIT students looking to develop secure web services that supports MIT Touchstone authentication.
@@ -40,7 +69,7 @@ In the authenticated chatroom, we demonstrate how PK Tokens can be use to verify
 
 Once logged in using an MIT crediential, the client may utilize methods from our `pktoken` module to generate a PK Token `opkService.getPKToken`, sign messages `opkService.generateOSM`, and verify messages `opkService.verifyOSM`. The user submits an OpenPubKey Signed Message (OSM) consisting of their message and a signture of their message using their PK Token. The authenticated chatroom is designed in a way to allow any users to verify any OSM at any time. All initial messages are unverified (grey check). To verify, click on the check and the verification may either accept (green check) or reject (red exclamation).
 
-#### Other possible OpenPubKey usage:
+#### Other possible OpenPubKey usage
 
 - **Committing bets**: Two friends make a bet on something, and they want to prove they made it with their commitment. Say later one person tries to say they never made this bet, but because they signed their message (which is stored on the server), we have irrefutable proof that they did make the bet.
 
@@ -86,7 +115,7 @@ To ensure the security of our overall client framework, we made the following de
 
 ### Security Discussion of Login System + Authenticated Actions
 
-An important thing to note is that in our example React app, we require the user to authenticate to be able to access the content of the "Protected" page. However, this measure simply *hides* the chatroom React component, but **doesn't actually prevent a malicious user from sending messages to the backend**. 
+An important thing to note is that in our example React app, we require the user to authenticate to be able to access the content of the "Protected" page. However, this measure simply *hides* the chatroom React component, but **doesnroot directory't actually prevent a malicious user from sending messages to the backend**. 
 
 For example, a bad actor can call the `auth.signin()` function themselves in the browser's console, provided with a fake email to simulate a user login and see the chatroom. Alternatively, they can directly send a POST request to the backend `/api/messages` endpoint with a message of their choice.
 
@@ -100,9 +129,9 @@ Install:
 
 * Node.js 16, at least Node 16.16.0
 
-#### Running Code (frontend and backend)
+### Running Code
 
-In the root directory, run:
+In either the backend or frontend folder, run:
 
 * `npm install` to install dependencies
 * `npm run build` to create build production 
@@ -152,6 +181,34 @@ For our purposes, we hosted our example website on an Ubuntu 18.02 VM running on
 ### Optional Reading: How our code works 
 
 In this section, we'll break down how our frontend and backend work together to provide the OIDC client implementation. Note that this does not cover the OpenPubKey-specific details.
+
+#### System Diagram
+
+The follow diagram summarizes our system interactions between the frontend, backend, and the OIDC server:
+
+```mermaid
+---
+title: OIDC Client Design
+---
+sequenceDiagram
+    autonumber
+    box purple unofficial-oidc-client.xvm.mit.edu
+    participant Frontend as React.js Frontend
+    participant Backend as Express.js Backend
+    end
+    box blue oidc.mit.edu
+    participant OIDC as OIDC Server
+    end
+    
+    Frontend ->> OIDC:  redirects to /authorize
+    OIDC -->> Frontend: receives auth code
+    Frontend ->> Backend: sends auth code to /login
+    Backend ->> OIDC: sends auth code to /token with client_secret
+    OIDC -->> Backend: receives JWT with id_token and access token
+    Backend ->> OIDC: queries about user at /userinfo with access token
+    OIDC -->> Backend: receives user information
+    Backend -->> Frontend: receives id_token and user email
+```
 
 #### Frontend
 
@@ -240,7 +297,7 @@ While in theory it's possible to do by storing an `access_token` and `refresh_to
 
 Indeed, we are considering switching the use of the `email`  to `preferred_username` as the main identifying field, since a user's kerberos is much more unlikely to change over the course of them being a student or MIT community member compared to their email (see [Name Changes at MIT](http://kb.mit.edu/confluence/display/mitcontrib/Name+Changes+At+MIT)). 
 
-### Future Works
+## Future Works
 
 While we were able to achieve many of the original goals set out for this project, we recognize that there are aspects which could be further improved and developed on for our client framework. 
  
