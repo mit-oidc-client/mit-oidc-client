@@ -82,8 +82,8 @@ Once logged in using an MIT crediential, the client may utilize methods from our
 At MIT, there are multiple authentication systems and methods that are frequently used. Each of them offers their own strengths and drawbacks, which we will summarize below:
 
 1. [**Touchstone**](http://kb.mit.edu/confluence/display/istcontrib/Touchstone+Landing+Page) is MIT's proprietary implementation of the Shibboleth system, which offers a **single sign on system (SSO)** for web applications. It is the most *flexible*, allowing users to either log with MIT certificate, kerberos, or a Collaboration account (for non-MIT collaborators). However, Touchstone requires special software (namely Shibboleth SP packages), and custom configuration changes to run, and are largely seen in MIT-controlled websites and the IS&T wiki.
-2. [**Shimmer**](https://tig.csail.mit.edu/accounts-authentication/oidc/) is CSAIL's implementation of the Touchstone system integrated with OpenID Connect (OIDC). While it utilizes OpenID Connect, its usage is limited to CSAIL services and CSAIL account holders, which makes it unavailable for MIT students to use more widely. Its main issues are that the servers running the system seem to somewhat unreliable, causing unexpected timeout issues at different times of the time. Students have also complained about its difficult-to-read documentation and lack of example client as reasons hindering its adoption.
-3. [**MIT OpenID Connect Pilot (OIDC)**](https://oidc.mit.edu/) is run by MITRE as part of a collaboration effort with MIT KIT starting in 2014, and is also based on the OpenID Connnect protocol. This service also offers a dynamic registration endpoint like Shimmer, except it is open to use by anyone at MIT with a Touchstone account. 
+2. [**Shimmer**](https://tig.csail.mit.edu/accounts-authentication/oidc/) is CSAIL's implementation of the Touchstone system integrated with OpenID Connect (OIDC). While it utilizes OpenID Connect and is the authentication system of choice for many CSAIl services and Course 6 websites, its usage is limited to  CSAIL account holders, which makes it unavailable for MIT students to use more widely. 
+3. [**MIT OpenID Connect Pilot (OIDC)**](https://oidc.mit.edu/) is run by MITRE as part of a collaboration effort with MIT KIT starting in 2014, and is also based on the OpenID Connnect protocol. This service also offers a dynamic registration endpoint like Shimmer, except it is open to use by anyone at MIT with a Touchstone account. Its main issues are that the servers running the system seem to somewhat unreliable, causing unexpected timeout issues at different times of the time. Students have also complained about its difficult-to-read documentation and lack of example client as reasons hindering its adoption.
 4. [**Certificates**](https://ist.mit.edu/certificates), namely MIT X.509 client certificates, are frequently used as a standalone authentication option for some MIT web services, including ones hosted on [Scripts](https://scripts.mit.edu/) - a popular MIT hosting service made by SIPB for students to use. The main issue with having certificates as the standalone certification option is that it is difficult to install certificates on mobile devices, and are not very extensible to MIT student web services running on third-party hosting solutions like Heroku, Render, or standalone VMs.
 
 Out of the auth systems we surveyed, **MIT OIDC** seems to be the most promising, and is why we chose it as the target system for this project. Not only is MIT OIDC the recommended authentication system by IS&T (see [here](http://kb.mit.edu/confluence/display/istcontrib/Authentication+Tools+at+MIT)), its current issues seem to be with lack of student awareness about its existence and lack of an easy-to-use client implementation rather than limitation sy the system itself. 
@@ -193,11 +193,11 @@ title: OIDC Client Design
 ---
 sequenceDiagram
     autonumber
-    box purple unofficial-oidc-client.xvm.mit.edu
+    box lightyellow unofficial-oidc-client.xvm.mit.edu
     participant Frontend as React.js Frontend
     participant Backend as Express.js Backend
     end
-    box blue oidc.mit.edu
+    box lightblue oidc.mit.edu
     participant OIDC as OIDC Server
     end
     
