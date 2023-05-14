@@ -40,8 +40,6 @@ In the authenticated chatroom, we demonstrate how PK Tokens can be use to verify
 
 Once logged in using an MIT crediential, the client may utilize methods from our `pktoken` module to generate a PK Token `opkService.getPKToken`, sign messages `opkService.generateOSM`, and verify messages `opkService.verifyOSM`. The user submits an OpenPubKey Signed Message (OSM) consisting of their message and a signture of their message using their PK Token. The authenticated chatroom is designed in a way to allow any users to verify any OSM at any time. All initial messages are unverified (grey check). To verify, click on the check and the verification may either accept (green check) or reject (red exclamation).
 
-### Related Works
-
 #### Other possible OpenPubKey usage:
 
 - **Committing bets**: Two friends make a bet on something, and they want to prove they made it with their commitment. Say later one person tries to say they never made this bet, but because they signed their message (which is stored on the server), we have irrefutable proof that they did make the bet.
@@ -49,6 +47,22 @@ Once logged in using an MIT crediential, the client may utilize methods from our
 - **Code signing:** Have a trusted verifier to have mapping of ID tokens to public keys, and then whenever a user signs a commit they made, they can send it to the verifier and have it put into an append-only log.
 
 - **SSH:** SSH keys are difficult to manage. Instead, have users sign in through Google (or some other OpenID provider), and then have a PK Token that can act as their public SSH key.
+
+## Related Works
+
+At MIT, there are multiple authentication systems and methods that are frequently used. Each of them offers their own strengths and drawbacks, which we will summarize below:
+
+1. [**Touchstone**](http://kb.mit.edu/confluence/display/istcontrib/Touchstone+Landing+Page) is MIT's proprietary implementation of the Shibboleth system, which offers a **single sign on system (SSO)** for web applications. It is the most *flexible*, allowing users to either log with MIT certificate, kerberos, or a Collaboration account (for non-MIT collaborators). However, Touchstone requires special software (namely Shibboleth SP packages), and custom configuration changes to run, and are largely seen in MIT-controlled websites and the IS&T wiki.
+2. [**Shimmer**](https://tig.csail.mit.edu/accounts-authentication/oidc/) is CSAIL's implementation of the Touchstone system integrated with OpenID Connect (OIDC). While it utilizes OpenID Connect, its usage is limited to CSAIL services and CSAIL account holders, which makes it unavailable for MIT students to use more widely. Its main issues are that the servers running the system seem to somewhat unreliable, causing unexpected timeout issues at different times of the time. Students have also complained about its difficult-to-read documentation and lack of example client as reasons hindering its adoption.
+3. **MIT OpenID Connect Pilot (OIDC)** is run by MITRE as part of a collaboration effort with MIT KIT starting in 2014, and is also based on the OpenID Connnect protocol. This service also offers a dynamic registration endpoint like Shimmer, except it is open to use by anyone at MIT with a Touchstone account. 
+4. **Certificates**, namely MIT X.509 client certificates, are frequently used as a standalone authentication option for some MIT web services, including ones hosted on [Scripts](https://scripts.mit.edu/) - a popular MIT hosting service made by SIPB for students to use. The main issue with having certificates as the standalone certification option is that it is difficult to install certificates on mobile devices, and are not very extensible to MIT student web services running on third-party hosting solutions like Heroku, Render, or standalone VMs.
+
+Out of the auth systems we surveyed, **MIT OIDC** seems to be the most promising, and is why we chose it as the target system for this project. Not only is MIT OIDC the recommended authentication system by IS&T (see [here](http://kb.mit.edu/confluence/display/istcontrib/Authentication+Tools+at+MIT)), its current issues seem to be with lack of student awareness about its existence and lack of an easy-to-use client implementation rather than limitation sy the system itself. 
+
+Since OpenID Connect is a well-known protocol, open-source clients for it have been written, including:
+
+- [**oidc-client-ts**](https://github.com/authts/oidc-client-ts) is a Typescript library that provides OIDC and OAuth2 support for browser-based client applications. The main issue we found with this template is that since all code is executed on the client side, it requires storing the `client_secret` in the frontend code. Because browsers are *public clients* (see [Confidential vs. Public client](https://www.youtube.com/watch?v=5cQNwifDq1U)), there is no way to guarantee the security of the secret. To fight against this, `oidc-client-ts` implements the **PKCE** extension, which came as part of the OAuth 2.0 protocol, and replaces the client_secret with a random string generated by the application for every auth code submission. Unfortunately, the MIT OIDC service does not currently support this extension, and without it, auth systems using this library would be vulnerable to impersonation attacks and potential leaks of user's data.
+- [**passport-mitopenid**](https://github.com/robertvunabandi/passport-mitopenid) is a project written by a MIT student in 2018 that implements a sample Node.js application that works with MIT OIDC service using Passport.js. This project is very similar to [node-openid-client](https://github.com/panva/node-openid-client), which is the official package (certified by OpenID) for implementing OpenID Client and Relaying Party in Node.js applications. However, for both libraries, it is an incomplete solution, since they are intended for web applications running solely on Node.js, whereas for our solution we want to have an integrated authentication workflow between an Node.js backend and a frontend running a web framework like React.js.
 
 ## Security Design
 
