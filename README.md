@@ -26,10 +26,10 @@ A short presentation summarizing our project can be found [here](https://docs.go
     - [OIDC registration + auth configs](#oidc-registration--auth-configs)
     - [Certificates](#certificates)
     - [Hosting](#hosting)
-    - [Optional Reading: How our code works](#optional-reading-how-our-code-works)
-      - [System Diagram](#system-diagram)
-      - [Frontend](#frontend)
-      - [Backend](#backend)
+  - [Optional Reading: How our code works](#optional-reading-how-our-code-works)
+    - [System Diagram](#system-diagram)
+    - [Frontend](#frontend)
+    - [Backend](#backend)
     - [Remarks about using MIT email as a unique user identifier](#remarks-about-using-mit-email-as-a-unique-user-identifier)
   - [Future Works](#future-works)
   - [Questions/ Feature Requests?](#questions-feature-requests)
@@ -83,8 +83,8 @@ At MIT, there are multiple authentication systems and methods that are frequentl
 
 1. [**Touchstone**](http://kb.mit.edu/confluence/display/istcontrib/Touchstone+Landing+Page) is MIT's proprietary implementation of the Shibboleth system, which offers a **single sign on system (SSO)** for web applications. It is the most *flexible*, allowing users to either log with MIT certificate, kerberos, or a Collaboration account (for non-MIT collaborators). However, Touchstone requires special software (namely Shibboleth SP packages), and custom configuration changes to run, and are largely seen in MIT-controlled websites and the IS&T wiki.
 2. [**Shimmer**](https://tig.csail.mit.edu/accounts-authentication/oidc/) is CSAIL's implementation of the Touchstone system integrated with OpenID Connect (OIDC). While it utilizes OpenID Connect, its usage is limited to CSAIL services and CSAIL account holders, which makes it unavailable for MIT students to use more widely. Its main issues are that the servers running the system seem to somewhat unreliable, causing unexpected timeout issues at different times of the time. Students have also complained about its difficult-to-read documentation and lack of example client as reasons hindering its adoption.
-3. **MIT OpenID Connect Pilot (OIDC)** is run by MITRE as part of a collaboration effort with MIT KIT starting in 2014, and is also based on the OpenID Connnect protocol. This service also offers a dynamic registration endpoint like Shimmer, except it is open to use by anyone at MIT with a Touchstone account. 
-4. **Certificates**, namely MIT X.509 client certificates, are frequently used as a standalone authentication option for some MIT web services, including ones hosted on [Scripts](https://scripts.mit.edu/) - a popular MIT hosting service made by SIPB for students to use. The main issue with having certificates as the standalone certification option is that it is difficult to install certificates on mobile devices, and are not very extensible to MIT student web services running on third-party hosting solutions like Heroku, Render, or standalone VMs.
+3. [**MIT OpenID Connect Pilot (OIDC)**](https://oidc.mit.edu/) is run by MITRE as part of a collaboration effort with MIT KIT starting in 2014, and is also based on the OpenID Connnect protocol. This service also offers a dynamic registration endpoint like Shimmer, except it is open to use by anyone at MIT with a Touchstone account. 
+4. [**Certificates**](https://ist.mit.edu/certificates), namely MIT X.509 client certificates, are frequently used as a standalone authentication option for some MIT web services, including ones hosted on [Scripts](https://scripts.mit.edu/) - a popular MIT hosting service made by SIPB for students to use. The main issue with having certificates as the standalone certification option is that it is difficult to install certificates on mobile devices, and are not very extensible to MIT student web services running on third-party hosting solutions like Heroku, Render, or standalone VMs.
 
 Out of the auth systems we surveyed, **MIT OIDC** seems to be the most promising, and is why we chose it as the target system for this project. Not only is MIT OIDC the recommended authentication system by IS&T (see [here](http://kb.mit.edu/confluence/display/istcontrib/Authentication+Tools+at+MIT)), its current issues seem to be with lack of student awareness about its existence and lack of an easy-to-use client implementation rather than limitation sy the system itself. 
 
@@ -99,7 +99,6 @@ To ensure the security of our overall client framework, we made the following de
 
 - **HTTPS** is required in development for both the front-end and back-end
   - HTTPS/SSL encryption ensures all communication between the user and the web service is protected. This is a hard requirement for safe-handling of OAuth ID and access tokens
-  - **Note:** Self-signed certificates should be used for development work **only**. We recommend using Let's Encrypt or other reputable certificate authority when deploying to production. If you're using platforms like Heroku or Render.com for hosting, they often will have their own SSL certificates management services. See [this](https://devcenter.heroku.com/articles/automated-certificate-management) and [this](https://render.com/docs/tls).
 - Dependency on **secure cryptographic libraries**
   - When generating randomness or relying on cryptographic primitives like hash functions, we use secure libraries like built in browser's `Crypto.getRandomValues()` and `Crypto.subtle.digest()` functions, along with official JWT libraries. This ensures that we are generating secure randomness in our application and depends only on secure primitive implementation for signing and verification of data.
 - Utilization of **state and nonce** in authorization request
@@ -115,7 +114,7 @@ To ensure the security of our overall client framework, we made the following de
 
 ### Security Discussion of Login System + Authenticated Actions
 
-An important thing to note is that in our example React app, we require the user to authenticate to be able to access the content of the "Protected" page. However, this measure simply *hides* the chatroom React component, but **doesnroot directory't actually prevent a malicious user from sending messages to the backend**. 
+An important thing to note is that in our example React app, we require the user to authenticate to be able to access the content of the "Protected" page. However, this measure simply *hides* the chatroom React component, but **doesn't actually prevent a malicious user from sending messages to the backend**. 
 
 For example, a bad actor can call the `auth.signin()` function themselves in the browser's console, provided with a fake email to simulate a user login and see the chatroom. Alternatively, they can directly send a POST request to the backend `/api/messages` endpoint with a message of their choice.
 
@@ -170,6 +169,8 @@ To secure the frontend and backend, you will need to use SSL certificates. For p
 
 For development work ONLY, you can generate self-signed certificates. See the following [guide](https://www.makeuseof.com/create-react-app-ssl-https/) to use `mkcert` utility. The certificates should be saved to the [/cert](/cert/) folder, with SSL secret key file named `key.pem` and public certificate file named `cert.pem`.
 
+We recommend using Let's Encrypt or other reputable certificate authority when deploying to production. If you're using platforms like Heroku or Render.com for hosting, they often will have their own SSL certificates management services. See [this](https://devcenter.heroku.com/articles/automated-certificate-management) and [this](https://render.com/docs/tls).
+
 On our live example, we used Let's Encrypt Certbot tool configured for Nginx for the acquiring and the auto-renewal of TLS certificates.
 
 ### Hosting
@@ -178,11 +179,11 @@ Our client implementation does not require a specific hosting solution, and inde
 
 For our purposes, we hosted our example website on an Ubuntu 18.02 VM running on SIPB's XVM service. We use Nginx as our web server and reverse proxy with TLS enabled, and `pm2` as the process manager for the Express backend.
 
-### Optional Reading: How our code works 
+## Optional Reading: How our code works 
 
 In this section, we'll break down how our frontend and backend work together to provide the OIDC client implementation. Note that this does not cover the OpenPubKey-specific details.
 
-#### System Diagram
+### System Diagram
 
 The follow diagram summarizes our system interactions between the frontend, backend, and the OIDC server:
 
@@ -210,7 +211,7 @@ sequenceDiagram
     Backend -->> Frontend: receives id_token and user email
 ```
 
-#### Frontend
+### Frontend
 
 The primary structure of our frontend code is as follows:
 
@@ -262,7 +263,7 @@ In our frontend code, we provide two React router paths, namely `/login` and `/o
 
 4. The webpage then reloads to show a `Welcome user_email@mit.edu!` message at the top (via `<AuthStatus/>` component), along with a signout button. The user can then access the Protected page, which in this case allows them to interact with the OpenPubKey-enabled chatroom. 
 
-#### Backend
+### Backend
 
 The Express.js backend requires only one API endpoint for OIDC, which we define as a POST request.
 
