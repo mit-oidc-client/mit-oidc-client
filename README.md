@@ -311,7 +311,7 @@ While we were able to achieve many of the original goals set out for this projec
 4. **Add session management for users**
     * One quality-of-life feature we would like to add to our OIDC client is the ability to create and manage sessions for logged in users. Currently, our system provides a way of authenticating users to the application, but it doesn't offer a generic way of tracking/authenticating actions done by that user after a successful login, outside of the OpenPubKey OSM messages. We would like to add a secure session management scheme, likely using libraries like `express-session` or `cookie-session`.
 5. **Add MFA cosigners and better expiry to OpenPubKey extension**
-    * TODO
+    * More improvements could be made to the OpenPubKey implementation of our project. One major features that OpenPubKey includes is cosigners for multifactor authentication, but the timeline of the project meant that it was not something we were able to implement. Beyond this, our current expiry protocol clears keys every session, but the PK Token itself has no expiry. We know that this is not secure, and plan to implement a more secure expiry protocol, such as expiring tokens after 2 weeks or basing expiry off of the ID Token expiry. As part of our future work, we'd like to implement these features.
 
 ## Questions/ Feature Requests?
 
